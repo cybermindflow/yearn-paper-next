@@ -48,7 +48,6 @@ export default function PracticePage() {
 
   const q = questions[current]
   const isObjective = q ? OBJECTIVE_TYPES.includes(q.question_type) : false
-  const answered = q ? !!answers[q.id] : false
   const allAnswered = questions.every(q => !!answers[q.id])
 
   const handleAnswer = (val: string) => {

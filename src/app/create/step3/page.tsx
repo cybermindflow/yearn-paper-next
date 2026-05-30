@@ -42,7 +42,7 @@ export default function Step3Page() {
   const handleGenerate = async () => {
     if (selectedTypes.length === 0) { toast.error('請至少選擇一種題型'); return }
 
-    const step1 = JSON.parse(sessionStorage.getItem('yp_step1') || '{}')
+    // step1 data not needed here (used in step2)
     const step2 = JSON.parse(sessionStorage.getItem('yp_step2') || '{}')
 
     setLoading(true)

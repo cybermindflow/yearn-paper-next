@@ -95,7 +95,8 @@ CREATE INDEX IF NOT EXISTS idx_children_parent_id ON children(parent_id);
 CREATE INDEX IF NOT EXISTS idx_knowledge_subject_year ON knowledge_chunks(subject, year);
 `
 
-const SEED_SQL = `
+// Seed SQL for reference (executed separately)
+void `
 -- Insert test parent account (password: 1234)
 INSERT INTO parents (phone, nickname, password_hash)
 VALUES (
