@@ -1,0 +1,69 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { getSessionFromRequest } from '@/lib/session'
+import { supabaseAdmin } from '@/lib/supabase'
+
+export async function GET(req: NextRequest) {
+  const session = await getSessionFromRequest(req)
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  // Get all papers for this parent
+  const { data: papers } = await supabaseAdmin
+    .from('papers')
+    .select('id')
+    .eq('parent_id', session.parentId)
+
+  if (!papers || papers.length === 0) return NextResponse.json({ scores: [] })
+
+  const paperIds = papers.map(p => p.id)
+
+  const { data: scores } = await supabaseAdmin
+    .from('scores')
+    .select(`
+      *,
+      papers(subject, topic, unit, mode, generated_at)
+    `)
+    .in('paper_id', paperIds)
+    .order('completed_at', { ascending: false })
+
+  return NextResponse.json({ scores: scores || [] })
+}
+
+export async function POST(req: NextRequest) {
+  // Manual score entry for PDF mode
+  const session = await getSessionFromRequest(req)
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { paperId, totalQuestions, correctCount, wrongQuestionNumbers } = await req.json()
+
+  // Verify ownership
+  const { data: paper } = await supabaseAdmin
+    .from('papers')
+    .select('*')
+    .eq('id', paperId)
+    .eq('parent_id', session.parentId)
+    .single()
+
+  if (!paper) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  const scorePercentage = totalQuestions > 0 ? (correctCount / totalQuestions) * 100 : 0
+
+  const { data: score } = await supabaseAdmin
+    .from('scores')
+    .insert({
+      paper_id: paperId,
+      child_id: paper.child_id,
+      total_questions: totalQuestions,
+      correct_count: correctCount,
+      score_percentage: parseFloat(scorePercentage.toFixed(2)),
+    })
+    .select()
+    .single()
+
+  // Update paper status
+  await supabaseAdmin
+    .from('papers')
+    .update({ status: 'completed', completed_at: new Date().toISOString() })
+    .eq('id', paperId)
+
+  return NextResponse.json({ success: true, score })
+}
