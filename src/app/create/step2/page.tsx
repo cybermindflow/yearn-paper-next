@@ -130,17 +130,18 @@ export default function Step2Page() {
     // Filter by selected levels
     const filtered = knowledge.filter(k => selectedLevels.has(k.level ?? 1))
 
-    // Group: category → subcategory → items
+    // Group: topic (category) → knowledge_point (subcategory) → items
+    // topic field: "數（Number）", "度量（Measures）", "圖形與空間（Shape and Space）"
     const categoryMap: Record<string, Record<string, KnowledgeChunk[]>> = {}
     for (const k of filtered) {
-      const cat = k.category || '其他'
-      const sub = k.subcategory || k.unit
+      const cat = k.topic || '其他'
+      const sub = k.knowledge_point || k.unit
       if (!categoryMap[cat]) categoryMap[cat] = {}
       if (!categoryMap[cat][sub]) categoryMap[cat][sub] = []
       categoryMap[cat][sub].push(k)
     }
 
-    const categoryOrder = ['數', '度量', '圖形與空間']
+    const categoryOrder = ['數（Number）', '度量（Measures）', '圖形與空間（Shape and Space）']
     const orderedCategories = [
       ...categoryOrder.filter(c => categoryMap[c]),
       ...Object.keys(categoryMap).filter(c => !categoryOrder.includes(c)),
