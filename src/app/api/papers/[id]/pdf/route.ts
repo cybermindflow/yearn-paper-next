@@ -12,18 +12,63 @@ const FONT_BOLD = path.join(FONT_DIR, 'NotoSansTC-Bold.otf')
 const DISCLAIMER =
   '免責聲明：本練習卷由殷學社教育中心 AI 系統自動生成，僅供學習參考之用。題目內容已力求準確，惟如有任何錯誤或遺漏，本中心恕不負責。如有疑問，請向老師查詢。'
 
+// A4 page constants (points)
+const PAGE_HEIGHT = 841.89
+const PAGE_MARGIN = 50
+const FOOTER_RESERVE = 30    // space reserved at bottom for disclaimer
+const CONTENT_BOTTOM = PAGE_HEIGHT - PAGE_MARGIN - FOOTER_RESERVE  // ~762
+
 function hasCjkFonts(): boolean {
   return fs.existsSync(FONT_REGULAR) && fs.existsSync(FONT_BOLD)
+}
+
+// Estimate the height (in points) a single question will occupy when rendered
+function estimateQuestionHeight(
+  q: {
+    question_type: string
+    question_text: string
+    options: Record<string, string> | null
+    explanation?: string
+  },
+  type: 'question' | 'answer'
+): number {
+  // Base: badge line + question text (approx 14pt per line, ~60 chars per line at 11pt)
+  const charsPerLine = 55
+  const questionLines = Math.ceil(q.question_text.length / charsPerLine) || 1
+  let height = 16 + questionLines * 14  // badge row + question text
+
+  if (type === 'question') {
+    // MC / TF options
+    if (q.options && typeof q.options === 'object') {
+      const optCount = Object.keys(q.options).filter(k => k.length <= 1).length
+      height += optCount * 14
+    }
+    // Answer line for fill/short/essay
+    if (['fill', 'short', 'essay'].includes(q.question_type)) {
+      height += q.question_type === 'fill' ? 18 : 36
+    }
+  } else {
+    // Answer key + explanation
+    height += 14  // answer line
+    if (q.explanation) {
+      const expLines = Math.ceil(q.explanation.length / charsPerLine) || 1
+      height += expLines * 12
+    }
+  }
+
+  height += 16  // moveDown(0.8) spacing after each question ≈ 16pt
+  return height
 }
 
 async function buildPdf(
   paper: Record<string, unknown>,
   questions: Record<string, unknown>[],
-  type: 'question' | 'answer'
+  type: 'question' | 'answer',
+  targetPages: number
 ): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     const useCjk = hasCjkFonts()
-    const doc = new PDFDocument({ size: 'A4', margin: 50, bufferPages: true })
+    const doc = new PDFDocument({ size: 'A4', margin: PAGE_MARGIN, bufferPages: true })
     const chunks: Buffer[] = []
     doc.on('data', c => chunks.push(c))
     doc.on('end', () => resolve(Buffer.concat(chunks)))
@@ -42,7 +87,7 @@ async function buildPdf(
 
     registerFonts()
 
-    // ── Watermark helper (called after all pages are generated) ──────────────
+    // ── Watermark helper ──────────────────────────────────────────────────────
     const drawWatermarkOnPage = () => {
       doc.save()
       doc.opacity(0.07)
@@ -57,104 +102,185 @@ async function buildPdf(
       doc.restore()
     }
 
-    // ── Header ────────────────────────────────────────────────────────────────
-    setFont(true, 20)
-    doc.fillColor('#1b4332')
-    doc.text('殷學社教育中心', { align: 'center' })
-    doc.moveDown(0.3)
-    setFont(false, 11)
-    doc.fillColor('#2d6a4f')
-    doc.text(`${paper.subject as string} · ${paper.topic as string} · ${paper.unit as string}`, { align: 'center' })
-    doc.moveDown(0.3)
-    setFont(false, 9)
-    doc.fillColor('#5a7a65')
-    doc.text(new Date().toLocaleDateString('zh-HK'), { align: 'right' })
-
-    // Divider
-    doc.moveDown(0.5)
-    doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor('#e0ebe3').lineWidth(1).stroke()
-    doc.moveDown(0.5)
-
-    // ── Student info row ──────────────────────────────────────────────────────
-    setFont(false, 11)
-    doc.fillColor('#1a2e22')
-    doc.text('姓名：＿＿＿＿＿＿＿＿＿＿＿＿＿', 50, doc.y, { continued: true, width: 220 })
-    doc.text('班別：＿＿＿＿＿', { continued: true, width: 150 })
-    doc.text('日期：＿＿＿＿＿')
-    doc.moveDown(1)
-
-    // ── Questions ─────────────────────────────────────────────────────────────
-    const typeLabel: Record<string, string> = {
-      mc: '選擇題', tf: '判斷題', fill: '填充題',
-      match: '配對題', classify: '分類題', short: '問答題', essay: '問答題',
+    // ── Page header helper ────────────────────────────────────────────────────
+    const drawPageHeader = (isFirstPage: boolean) => {
+      if (isFirstPage) {
+        setFont(true, 20)
+        doc.fillColor('#1b4332')
+        doc.text('殷學社教育中心', { align: 'center' })
+        doc.moveDown(0.3)
+        setFont(false, 11)
+        doc.fillColor('#2d6a4f')
+        doc.text(`${paper.subject as string} · ${paper.topic as string} · ${paper.unit as string}`, { align: 'center' })
+        doc.moveDown(0.3)
+        setFont(false, 9)
+        doc.fillColor('#5a7a65')
+        doc.text(new Date().toLocaleDateString('zh-HK'), { align: 'right' })
+        // Divider
+        doc.moveDown(0.5)
+        doc.moveTo(PAGE_MARGIN, doc.y).lineTo(545, doc.y).strokeColor('#e0ebe3').lineWidth(1).stroke()
+        doc.moveDown(0.5)
+        // Student info row
+        setFont(false, 11)
+        doc.fillColor('#1a2e22')
+        doc.text('姓名：＿＿＿＿＿＿＿＿＿＿＿＿＿', PAGE_MARGIN, doc.y, { continued: true, width: 220 })
+        doc.text('班別：＿＿＿＿＿', { continued: true, width: 150 })
+        doc.text('日期：＿＿＿＿＿')
+        doc.moveDown(1)
+      } else {
+        // Continuation header on subsequent pages
+        setFont(false, 9)
+        doc.fillColor('#5a7a65')
+        doc.text(`殷學社教育中心 · ${paper.subject as string} · ${paper.unit as string}（續）`, { align: 'center' })
+        doc.moveDown(0.5)
+        doc.moveTo(PAGE_MARGIN, doc.y).lineTo(545, doc.y).strokeColor('#e0ebe3').lineWidth(1).stroke()
+        doc.moveDown(0.5)
+      }
     }
 
-    for (const q of questions as Array<{
+    // ── Pre-calculate question heights and distribute across pages ────────────
+    const typedQuestions = questions as Array<{
       question_number: number
       question_type: string
       question_text: string
       options: Record<string, string> | null
       correct_answer: string
       explanation: string
-    }>) {
-      if (doc.y > 720) doc.addPage()
+    }>
 
-      // Question badge + text
-      setFont(true, 10)
-      doc.fillColor('#2d6a4f')
-      const badge = typeLabel[q.question_type] || q.question_type
-      doc.text(`[${badge}]  `, 50, doc.y, { continued: true })
-      setFont(false, 11)
-      doc.fillColor('#1a2e22')
-      doc.text(`${q.question_number}. ${q.question_text}`)
-      doc.moveDown(0.4)
+    const qHeights = typedQuestions.map(q => estimateQuestionHeight(q, type))
+    const totalQHeight = qHeights.reduce((a, b) => a + b, 0)
 
-      if (type === 'question') {
-        // Options
-        if (q.options && typeof q.options === 'object') {
-          for (const [key, val] of Object.entries(q.options)) {
-            if (key.length <= 1) { // A/B/C/D options only
-              setFont(false, 10)
-              doc.fillColor('#333')
-              doc.text(`   ${key}. ${val}`, { indent: 20 })
-            }
-          }
-        }
-        // Answer line for fill/short/essay
-        if (['fill', 'short', 'essay'].includes(q.question_type)) {
-          doc.moveDown(0.3)
-          setFont(false, 10)
-          doc.fillColor('#aaa')
-          doc.text('答：＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿', { indent: 20 })
-          if (['short', 'essay'].includes(q.question_type)) {
-            doc.text('＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿', { indent: 20 })
-          }
-        }
-      } else {
-        // Answer key
-        setFont(true, 10)
-        doc.fillColor('#2d6a4f')
-        doc.text(`   答案：${q.correct_answer}`, { indent: 20 })
-        if (q.explanation) {
-          setFont(false, 9)
-          doc.fillColor('#5a7a65')
-          doc.text(`   解釋：${q.explanation}`, { indent: 20 })
-        }
+    // Available content height per page (first page has header, rest have small header)
+    const firstPageHeaderHeight = 120  // approx height of title + student info
+    const contPageHeaderHeight = 35    // approx height of continuation header
+    const firstPageAvail = CONTENT_BOTTOM - PAGE_MARGIN - firstPageHeaderHeight
+    const contPageAvail = CONTENT_BOTTOM - PAGE_MARGIN - contPageHeaderHeight
+
+    // Determine how many pages we actually need
+    let neededPages = 1
+    let remaining = firstPageAvail
+    for (const h of qHeights) {
+      if (h > remaining) {
+        neededPages++
+        remaining = contPageAvail
       }
-      doc.moveDown(0.8)
+      remaining -= h
+    }
+    const actualPages = Math.max(neededPages, targetPages)
+
+    // Distribute questions: aim for equal height per page
+    const totalAvail = firstPageAvail + Math.max(0, actualPages - 1) * contPageAvail
+    const heightPerPage = totalQHeight / actualPages
+
+    // Build page buckets
+    const pageBuckets: number[][] = [[]]  // pageBuckets[i] = array of question indices
+    let currentPage = 0
+    let currentPageHeight = 0
+    const pageCapacity = (p: number) => p === 0 ? firstPageAvail : contPageAvail
+
+    for (let i = 0; i < typedQuestions.length; i++) {
+      const qh = qHeights[i]
+      const cap = pageCapacity(currentPage)
+
+      // Check if adding this question would exceed the page capacity
+      // AND we still have more pages to use
+      const wouldExceed = currentPageHeight + qh > cap
+      const hasMorePages = currentPage < actualPages - 1
+
+      // Also check if we're behind schedule (should have moved to next page already)
+      const targetHeightSoFar = heightPerPage * (currentPage + 1)
+      const actualHeightSoFar = pageBuckets
+        .slice(0, currentPage + 1)
+        .flat()
+        .reduce((sum, idx) => sum + qHeights[idx], 0) + currentPageHeight
+
+      const isBehindSchedule = actualHeightSoFar > targetHeightSoFar && hasMorePages
+
+      if ((wouldExceed || isBehindSchedule) && hasMorePages) {
+        currentPage++
+        currentPageHeight = 0
+        pageBuckets.push([])
+      }
+
+      pageBuckets[currentPage].push(i)
+      currentPageHeight += qh
     }
 
-    // ── Disclaimer ────────────────────────────────────────────────────────────
+    // Pad to actualPages if needed
+    while (pageBuckets.length < actualPages) {
+      pageBuckets.push([])
+    }
+
+    // ── Render pages ──────────────────────────────────────────────────────────
+    const typeLabel: Record<string, string> = {
+      mc: '選擇題', tf: '判斷題', fill: '填充題',
+      match: '配對題', classify: '分類題', short: '問答題', essay: '問答題',
+    }
+
+    for (let pageIdx = 0; pageIdx < pageBuckets.length; pageIdx++) {
+      if (pageIdx > 0) doc.addPage()
+      drawPageHeader(pageIdx === 0)
+
+      const bucket = pageBuckets[pageIdx]
+      for (const qIdx of bucket) {
+        const q = typedQuestions[qIdx]
+
+        // Question badge + text
+        setFont(true, 10)
+        doc.fillColor('#2d6a4f')
+        const badge = typeLabel[q.question_type] || q.question_type
+        doc.text(`[${badge}]  `, PAGE_MARGIN, doc.y, { continued: true })
+        setFont(false, 11)
+        doc.fillColor('#1a2e22')
+        doc.text(`${q.question_number}. ${q.question_text}`)
+        doc.moveDown(0.4)
+
+        if (type === 'question') {
+          // Options
+          if (q.options && typeof q.options === 'object') {
+            for (const [key, val] of Object.entries(q.options)) {
+              if (key.length <= 1) {
+                setFont(false, 10)
+                doc.fillColor('#333')
+                doc.text(`   ${key}. ${val}`, { indent: 20 })
+              }
+            }
+          }
+          // Answer line for fill/short/essay
+          if (['fill', 'short', 'essay'].includes(q.question_type)) {
+            doc.moveDown(0.3)
+            setFont(false, 10)
+            doc.fillColor('#aaa')
+            doc.text('答：＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿', { indent: 20 })
+            if (['short', 'essay'].includes(q.question_type)) {
+              doc.text('＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿', { indent: 20 })
+            }
+          }
+        } else {
+          // Answer key
+          setFont(true, 10)
+          doc.fillColor('#2d6a4f')
+          doc.text(`   答案：${q.correct_answer}`, { indent: 20 })
+          if (q.explanation) {
+            setFont(false, 9)
+            doc.fillColor('#5a7a65')
+            doc.text(`   解釋：${q.explanation}`, { indent: 20 })
+          }
+        }
+        doc.moveDown(0.8)
+      }
+    }
+
+    // ── Post-render: watermark + disclaimer on every page ────────────────────
     const range = doc.bufferedPageRange()
     for (let i = 0; i < range.count; i++) {
       doc.switchToPage(range.start + i)
-      // Watermark on question paper only (all pages)
       if (type === 'question') drawWatermarkOnPage()
-      // Disclaimer footer on every page
       doc.save()
       setFont(false, 7)
       doc.fillColor('#5a7a65')
-      doc.text(DISCLAIMER, 50, 790, { width: 495, align: 'center' })
+      doc.text(DISCLAIMER, PAGE_MARGIN, 790, { width: 495, align: 'center' })
       doc.restore()
     }
 
@@ -188,11 +314,21 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: '尚未生成題目' }, { status: 400 })
   }
 
-  const pdfBuffer = await buildPdf(paper as Record<string, unknown>, questions as Record<string, unknown>[], type)
+  // Use the paper's page_count setting, default to 1
+  const targetPages = (paper as Record<string, unknown>).page_count
+    ? Number((paper as Record<string, unknown>).page_count)
+    : 1
+
+  const pdfBuffer = await buildPdf(
+    paper as Record<string, unknown>,
+    questions as Record<string, unknown>[],
+    type,
+    targetPages
+  )
 
   const filename = type === 'question'
-    ? `殷學社_題目卷_${paper.unit}.pdf`
-    : `殷學社_答案卷_${paper.unit}.pdf`
+    ? `殷學社_題目卷_${(paper as Record<string, unknown>).unit}.pdf`
+    : `殷學社_答案卷_${(paper as Record<string, unknown>).unit}.pdf`
 
   return new NextResponse(new Uint8Array(pdfBuffer), {
     headers: {

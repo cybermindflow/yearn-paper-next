@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import AppLayout from '@/components/AppLayout'
-import { Plus, BookOpen, FileText, BarChart2, Users, ChevronRight, Loader2 } from 'lucide-react'
+import { Plus, BookOpen, FileText, BarChart2, Users, ChevronRight, Loader2, Stethoscope, PenLine, Trophy } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface Child { id: string; name: string; grade: string }
@@ -69,6 +69,52 @@ export default function DashboardPage() {
   return (
     <AppLayout>
       <div className="fade-in">
+        {/* Mode selection cards */}
+        <div className="mb-6">
+          <h2 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-muted)' }}>選擇模式</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {/* 診斷模式 - coming soon */}
+            <div className="card flex flex-col items-center text-center py-5 opacity-50 cursor-not-allowed select-none"
+              style={{ borderColor: 'var(--border)' }}>
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3"
+                style={{ background: 'var(--surface)' }}>
+                <Stethoscope size={24} style={{ color: 'var(--text-muted)' }} />
+              </div>
+              <div className="font-bold text-sm mb-1" style={{ color: 'var(--text-muted)' }}>診斷模式</div>
+              <div className="text-xs px-2 py-0.5 rounded-full font-medium"
+                style={{ background: '#f1f5f9', color: '#94a3b8' }}>即將推出</div>
+            </div>
+
+            {/* 練習模式 - active */}
+            <Link href="/create/step1"
+              className="card flex flex-col items-center text-center py-5 no-underline group transition-all hover:shadow-md hover:-translate-y-0.5"
+              style={{ borderColor: 'var(--brand)', borderWidth: '2px' }}>
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3"
+                style={{ background: 'var(--brand)' }}>
+                <PenLine size={24} color="#fff" />
+              </div>
+              <div className="font-bold text-sm mb-1" style={{ color: 'var(--brand-dark)' }}>練習模式</div>
+              <div className="text-xs px-2 py-0.5 rounded-full font-medium"
+                style={{ background: 'var(--brand-pale)', color: 'var(--brand)' }}>立即使用</div>
+            </Link>
+
+            {/* 模擬考試 - coming soon */}
+            <div className="card flex flex-col items-center text-center py-5 opacity-50 cursor-not-allowed select-none"
+              style={{ borderColor: 'var(--border)' }}>
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3"
+                style={{ background: 'var(--surface)' }}>
+                <Trophy size={24} style={{ color: 'var(--text-muted)' }} />
+              </div>
+              <div className="font-bold text-sm mb-1" style={{ color: 'var(--text-muted)' }}>模擬考試</div>
+              <div className="text-xs px-2 py-0.5 rounded-full font-medium"
+                style={{ background: '#f1f5f9', color: '#94a3b8' }}>即將推出</div>
+            </div>
+          </div>
+          <p className="text-xs mt-2 text-center" style={{ color: 'var(--text-muted)' }}>
+            建議先完成診斷，了解孩子弱項，再生成針對性練習。
+          </p>
+        </div>
+
         {/* Stats row */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
           {[
