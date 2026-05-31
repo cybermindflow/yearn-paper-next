@@ -4,7 +4,7 @@
 **Vercel URL**：https://yearn-paper-next.vercel.app/  
 **GitHub Repo**：私有倉庫（cybermindflows/yearn-paper-next）  
 **最後更新**：2026-05-31  
-**最新 Commit**：`6a37dfd93fe4edee58f1457c131f6a0620a5b1ae`
+**最新 Commit**：`daf4065`（DeepSeek API 整合）
 
 ---
 
@@ -17,7 +17,7 @@
 | 後端 API | Next.js Route Handlers | `/api/*` REST API |
 | 資料庫 | Supabase (PostgreSQL) | 雲端託管，免費方案 |
 | 部署平台 | Vercel | 自動 CI/CD，免費方案 |
-| AI 出題 | Mock LLM（可切換 OpenAI） | 由 `USE_MOCK_LLM` 環境變數控制 |
+| AI 出題 | **DeepSeek API**（`deepseek-chat`） | 由 `USE_MOCK_LLM` 環境變數控制；`false` 時呼叫 DeepSeek，`true` 時使用 Mock |
 | 認證方式 | 手機號 + 密碼 + JWT Cookie | httpOnly Cookie，7 天有效期 |
 
 ---
@@ -121,7 +121,7 @@
 - [x] Step 1（`/create/step1`）：選擇年級、科目；讀取 URL `mode` 參數存入 sessionStorage
 - [x] Step 2（`/create/step2`）：選擇知識點/單元
 - [x] Step 3（`/create/step3`）：設定題型、數量、交付方式；傳入 `learningMode` 和 `deliveryMode`
-- [x] AI 題目生成（Mock LLM，支援 MC/TF/Short 三種題型）
+- [x] AI 題目生成（**DeepSeek API**，支援 MC/TF/Short 三種題型，含格式校驗、重試及 Mock 回退邏輯）
 
 ### 線上練習模式
 - [x] 線上作答介面（`/practice/[id]`）
@@ -247,13 +247,51 @@
 
 ---
 
+### Phase 1：修正三 — DeepSeek API 整合（2026-05-31）
+
+#### 修正要求（來自指令文件 Pasted_content_02.txt）
+- 將題目生成引擎由 Mock LLM 切換為 DeepSeek API
+- 設計完整的繁體中文 Prompt（含知識庫內容、題型說明、格式要求）
+- 加入格式校驗、重試機制及 Mock 回退邏輯
+- 設定 Vercel 環境變數（`USE_MOCK_LLM=false`、`DEEPSEEK_API_KEY`、`DEEPSEEK_MODEL`）
+
+#### ✅ 成功
+1. **`src/lib/mockLLM.ts` 完整重寫**：
+   - 加入 `callDeepSeekAPI()` 函數，呼叫 `https://api.deepseek.com/chat/completions`
+   - System Prompt 包含：香港教育局課程指引對齊、知識庫內容、題型說明、JSON 格式要求
+   - `validateDeepSeekResponse()`：校驗題目數量（允許 80% 容差）、題型有效性、選項格式
+   - `parseDeepSeekContent()`：自動去除 markdown code fence（````json`）
+   - 重試機制：最多 2 次重試，失敗後自動回退至 Mock LLM
+   - `generateWithDeepSeek()` 完整流程：build prompt → call API → validate → transform → fallback
+2. **Vercel 環境變數更新**（透過 Vercel REST API）：
+   - `USE_MOCK_LLM` → `false`
+   - `DEEPSEEK_API_KEY` → `sk-4afa19ce...`（已加密儲存）
+   - `DEEPSEEK_MODEL` → `deepseek-chat`
+3. **`vercel.json` 新增**：設定 `maxDuration=60`，避免 Serverless Function 10 秒 timeout
+4. 第七次 Vercel 部署成功（commit `d3cc536`）
+5. 第八次 Vercel 部署成功（commit `daf4065`，修正模型名稱）
+6. **實測驗證**：DeepSeek API 成功生成 6 道題目（4 道選擇題 + 2 道判斷題），頁面顯示「✅ 成功生成 6 道題目！」
+
+#### ❌ 失敗
+1. **第一次部署後測試**：按下「生成練習卷」後持續顯示「生成中...」，未能完成
+   - **根本原因**：`DEEPSEEK_MODEL` 環境變數設定為 `'deepseek-v4-pro'`（不存在的模型名稱），導致 API 返回 404
+   - **修正**：將預設值改為 `'deepseek-chat'`，並更新 Vercel 環境變數
+2. **Vercel token 混淆**：最初使用了錯誤的 token（`vcp_7G7ZRVKrKrqkSqD...`），導致 API 返回 `forbidden`
+   - **修正**：改用正確的 token（`vcp_7G7ZRVKrKNqSFsq...`）
+
+#### ⚠️ 偏離原指令的操作
+1. **`vercel.json` 新增**：原指令未要求，但因 Vercel Serverless Function 預設 10 秒 timeout 不足以完成 DeepSeek API 呼叫（生成 6 題約需 15-30 秒），故主動新增 `maxDuration=60`
+2. **模型名稱預設值錯誤**：初始代碼將 `DEEPSEEK_MODEL` 預設值寫為 `'deepseek-v4-pro'`（不存在），應為 `'deepseek-chat'`；需要額外一次部署修正
+
+---
+
 ## 六、待辦事項（未來 Phase）
 
 | 優先級 | 功能 | 說明 |
 |--------|------|------|
 | 高 | 診斷模式 | 自動分析弱項，生成針對性練習 |
 | 高 | 模擬考試模式 | 計時、全卷、正式評分 |
-| 中 | 真實 AI 出題 | 切換 `USE_MOCK_LLM=false` + OpenAI API Key |
+| ~~中~~ | ~~真實 AI 出題~~ | ~~切換 `USE_MOCK_LLM=false` + OpenAI API Key~~ **→ 已完成（Phase 1 修正三，DeepSeek）** |
 | 中 | 孩子個人成績追蹤 | 按孩子篩選成績，顯示進步趨勢 |
 | 中 | 知識點擴充 | 增加更多科目和年級的知識點 |
 | 低 | 電郵通知 | 出卷完成後發送 PDF 至家長電郵 |
@@ -270,8 +308,9 @@
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase 服務角色金鑰 | Vercel 環境變數 |
 | `JWT_SECRET` | JWT 簽名密鑰 | Vercel 環境變數 |
 | `NEXT_PUBLIC_APP_URL` | 應用程式 URL | Vercel 環境變數 |
-| `USE_MOCK_LLM` | 是否使用 Mock LLM（true/false） | Vercel 環境變數 |
-| `OPENAI_API_KEY` | OpenAI API 金鑰（USE_MOCK_LLM=false 時需要） | Vercel 環境變數 |
+| `USE_MOCK_LLM` | 是否使用 Mock LLM（`false` = 使用 DeepSeek） | Vercel 環境變數（目前值：`false`） |
+| `DEEPSEEK_API_KEY` | DeepSeek API 金鑰 | Vercel 環境變數（已設定） |
+| `DEEPSEEK_MODEL` | DeepSeek 模型名稱 | Vercel 環境變數（目前值：`deepseek-chat`） |
 
 ---
 
