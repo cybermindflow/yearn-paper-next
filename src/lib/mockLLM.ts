@@ -96,6 +96,11 @@ function buildSystemPrompt(
 【知識庫內容】
 ${knowledgeContent}
 
+【答案一致性要求】
+- 同一份練習卷中，若多道題目涉及同一知識點（如「香港主要公共交通工具」），所有題目的答案必須一致，不得互相矛盾。
+- 例如：若一道題問「香港最主要的集體運輸系統是什麼？」答案為「港鐵」，則同一份練習卷中不應出現另一道題暗示「渡輪」是最主要的交通工具。
+- 在生成所有題目後，請自行檢查是否有答案矛盾的情況，如有則修正。
+
 【注意】
 - 只輸出 JSON，不要任何前綴或後綴
 - 選擇題的選項必須以 "A. "、"B. "、"C. "、"D. " 開頭
@@ -156,6 +161,19 @@ function validateDeepSeekResponse(
     if (q.type && !allowedTypes.has(q.type) && validTypes.has(q.type)) {
       // Allow slight type mismatch (e.g., short vs essay) — just warn
       console.warn(`[DeepSeek] 第 ${i + 1} 題類型 ${q.type} 不在請求的題型列表中`)
+    }
+  }
+
+  // Contradiction check: same knowledge-point keywords but conflicting answers
+  const transportKeywords = ['港鐵', '地鐵', '渡輪', '巴士', '小巴', '電車']
+  const transportQs = questions.filter(q =>
+    transportKeywords.some(k => q.question_text.includes(k) || q.correct_answer.includes(k))
+  )
+  if (transportQs.length >= 2) {
+    const hasHkrailAnswer = transportQs.some(q => ['港鐵', '地鐵'].some(k => q.correct_answer.includes(k)))
+    const hasFerryAnswer = transportQs.some(q => q.correct_answer.includes('渡輪'))
+    if (hasHkrailAnswer && hasFerryAnswer) {
+      errors.push('答案矛盾：同一練習卷中港鐵和渡輪同時出現為主要交通工具的答案')
     }
   }
 

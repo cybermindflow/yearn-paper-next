@@ -108,7 +108,18 @@ async function buildPdf(
         doc.text('姓名：＿＿＿＿＿＿＿＿＿＿＿＿＿', PAGE_MARGIN, doc.y, { continued: true, width: 220 })
         doc.text('班別：＿＿＿＿＿', { continued: true, width: 150 })
         doc.text('日期：＿＿＿＿＿')
-        doc.moveDown(1)
+        // AI Disclaimer on first page
+        doc.moveDown(0.5)
+        setFont(false, 8)
+        doc.fillColor('#92400e')
+        doc.rect(PAGE_MARGIN, doc.y, 495, 22).fillAndStroke('#fffbeb', '#f59e0b')
+        doc.fillColor('#92400e')
+        doc.text(
+          '【AI 生成內容｜僅供參考】本練習卷由 AI 自動生成，題目及答案可能不完全準確。建議家長在使用前核對內容。',
+          PAGE_MARGIN + 6, doc.y - 16,
+          { width: 483, lineBreak: false }
+        )
+        doc.moveDown(1.2)
       } else {
         setFont(false, 9)
         doc.fillColor('#5a7a65')

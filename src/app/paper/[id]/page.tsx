@@ -8,7 +8,7 @@ import { Download, PlayCircle, FileText, Loader2, ArrowLeft, PenLine } from 'luc
 
 interface Paper {
   id: string; subject: string; topic: string; unit: string
-  mode: string; status: string; difficulty_level: number
+  mode: string; delivery_mode: string; status: string; difficulty_level: number
   page_count: number; question_types: string[]; generated_at: string
 }
 interface Question {
@@ -127,7 +127,7 @@ export default function PaperDetailPage() {
                 <span className="badge badge-green">{difficultyLabel}</span>
                 <span className="badge badge-orange">{paper.page_count} 頁 / {questions.length} 題</span>
                 <span className="badge badge-gray">{typeLabels}</span>
-                <span className="badge badge-gray">{paper.mode === 'online' ? '線上作答' : 'PDF 模式'}</span>
+                <span className="badge badge-gray">{paper.delivery_mode === 'online' ? '線上作答' : 'PDF 模式'}</span>
               </div>
             </div>
             <div className="text-sm" style={{ color: 'var(--text-muted)' }}>
@@ -136,12 +136,26 @@ export default function PaperDetailPage() {
           </div>
         </div>
 
+        {/* Disclaimer Banner */}
+        <div className="mb-4 p-4 rounded-xl border-l-4 border-orange-400 bg-yellow-50">
+          <p className="text-sm text-yellow-800">
+            <span className="font-bold">⚠️ AI 生成內容免責聲明：</span>本練習卷由 AI 自動生成，僅供家長輔助孩子學習參考之用。題目內容可能不完全準確或存在偏差，不構成任何專業學術意見。建議家長在使用前檢視題目，並根據孩子的實際學習情況進行判斷。
+          </p>
+        </div>
+
         {/* Actions */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
-          {paper.mode === 'online' && paper.status !== 'completed' && (
+          {(paper.delivery_mode === 'online' || !paper.delivery_mode) && paper.status !== 'completed' && (
             <button onClick={() => router.push(`/practice/${id}`)}
               className="btn-primary flex items-center justify-center gap-2 py-3">
               <PlayCircle size={18} /> 開始線上作答
+            </button>
+          )}
+          {paper.delivery_mode === 'pdf' && paper.status !== 'completed' && (
+            <button onClick={() => router.push(`/practice/${id}`)}
+              className="btn-ghost flex items-center justify-center gap-2 py-3 border"
+              style={{ borderColor: 'var(--brand)' }}>
+              <PlayCircle size={16} /> 線上作答（PDF版亦可）
             </button>
           )}
           <button onClick={() => downloadPdf('question')} disabled={downloading === 'question'}
@@ -154,7 +168,7 @@ export default function PaperDetailPage() {
             {downloading === 'answer' ? <Loader2 size={16} className="animate-spin" /> : <FileText size={16} />}
             下載答案卷
           </button>
-          {paper.mode === 'pdf' && paper.status !== 'completed' && (
+          {paper.delivery_mode === 'pdf' && paper.status !== 'completed' && (
             <button onClick={() => setShowManual(v => !v)}
               className="btn-ghost flex items-center justify-center gap-2 py-3 border"
               style={{ borderColor: 'var(--border)' }}>

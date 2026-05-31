@@ -34,7 +34,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const navItems = [
     { href: '/dashboard', label: '儀錶板', icon: LayoutDashboard },
-    { href: '/create/step1', label: '出卷', icon: BookOpen },
+    { href: '/create/step1?mode=practice', label: '出卷', icon: BookOpen },
     { href: '/scores', label: '成績', icon: BarChart2 },
   ]
 

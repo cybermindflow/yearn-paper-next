@@ -91,6 +91,12 @@ export default function PracticePage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12 fade-in"
         style={{ background: 'var(--surface)' }}>
+        {/* Disclaimer above score */}
+        <div className="w-full max-w-sm mb-4 p-3 rounded-xl border-l-4 border-orange-400 bg-yellow-50">
+          <p className="text-xs text-yellow-800">
+            <span className="font-bold">⚠️ </span>本練習卷由 AI 生成，評分結果僅供參考。建議家長核對主觀題的答案，並根據實際情況給予指導。
+          </p>
+        </div>
         <div className="card w-full max-w-sm text-center">
           <CheckCircle size={48} className="mx-auto mb-3" style={{ color: 'var(--brand)' }} />
           <h1 className="text-2xl font-bold mb-1" style={{ color: 'var(--brand-dark)' }}>作答完成！</h1>

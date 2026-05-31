@@ -68,8 +68,17 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* AI Disclaimer Section */}
+      <section className="max-w-5xl mx-auto w-full px-4 pb-8">
+        <div className="p-4 rounded-xl border-l-4 border-orange-400 bg-yellow-50">
+          <p className="text-sm text-yellow-800">
+            <span className="font-bold">⚠️ AI 內容免責聲明：</span>本平台使用 AI 技術生成練習題目，所有內容僅供學習參考，不構成任何學術保證或專業教育建議。題目內容可能存在不準確或偏差，建議家長在使用前檢視題目內容。
+          </p>
+        </div>
+      </section>
+
       <footer className="disclaimer">
-        免責聲明：本練習卷由殷學社教育中心 AI 系統自動生成，僅供學習參考之用。題目內容已力求準確，惟如有任何錯誤或遺漏，本中心恕不負責。如有疑問，請向老師查詢。
+        免責聲明：本練習卷由殷學社教育中心 AI 系統自動生成，僅供學習參考之用。題目內容已力求準確，惴如有任何錯誤或遗漏，本中心恕不負責。如有疑問，請向老師查詢。
         <br />© 2026 殷學社教育中心 Yearn Hopes Education Centre. All rights reserved.
       </footer>
     </div>

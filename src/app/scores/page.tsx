@@ -74,7 +74,7 @@ export default function ScoresPage() {
           <div className="card text-center py-12">
             <BarChart2 size={40} className="mx-auto mb-3" style={{ color: 'var(--border)' }} />
             <p className="text-sm" style={{ color: 'var(--text-muted)' }}>尚無成績記錄</p>
-            <button onClick={() => router.push('/create/step1')} className="btn-primary mt-4 text-sm">
+            <button onClick={() => router.push('/create/step1?mode=practice')} className="btn-primary mt-4 text-sm">
               立即出卷
             </button>
           </div>

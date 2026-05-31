@@ -67,7 +67,7 @@ export const KNOWLEDGE_BASE: KnowledgeChunk[] = [
     topic: '生活多姿彩',
     unit: '單元一',
     knowledge_point: '香港主要公共交通工具',
-    learning_objective: '認識香港各種公共交通工具，包括地鐵、巴士、小巴、電車及渡輪的特點與用途。',
+    learning_objective: '認識香港各種公共交通工具，包括地鐵、巴士、小巴、電車及渡輪的特點與用途。港鐵（地鐵）是香港最主要的集體運輸系統，覆蓋市區主要區域，班次頻密，是市區居民最常用的交通工具。渡輪主要服務離峳（如大嶼山、長洲、滿月峳）和部分港內航線，不是市區主要交通工具。',
     level: 1,
     applicable_question_types: ['mc', 'tf', 'fill', 'match'],
     source: '小三常識科課程指引',
