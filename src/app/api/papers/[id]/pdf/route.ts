@@ -170,7 +170,6 @@ async function buildPdf(
     const actualPages = Math.max(neededPages, targetPages)
 
     // Distribute questions: aim for equal height per page
-    const totalAvail = firstPageAvail + Math.max(0, actualPages - 1) * contPageAvail
     const heightPerPage = totalQHeight / actualPages
 
     // Build page buckets
