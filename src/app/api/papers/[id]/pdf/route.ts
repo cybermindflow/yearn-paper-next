@@ -13,51 +13,33 @@ const DISCLAIMER =
   '免責聲明：本練習卷由殷學社教育中心 AI 系統自動生成，僅供學習參考之用。題目內容已力求準確，惟如有任何錯誤或遺漏，本中心恕不負責。如有疑問，請向老師查詢。'
 
 // A4 page constants (points)
-const PAGE_HEIGHT = 841.89
 const PAGE_MARGIN = 50
-const FOOTER_RESERVE = 30    // space reserved at bottom for disclaimer
-const CONTENT_BOTTOM = PAGE_HEIGHT - PAGE_MARGIN - FOOTER_RESERVE  // ~762
+const CONTENT_BOTTOM = 762  // PAGE_HEIGHT(841.89) - PAGE_MARGIN(50) - FOOTER(30)
 
 function hasCjkFonts(): boolean {
   return fs.existsSync(FONT_REGULAR) && fs.existsSync(FONT_BOLD)
 }
 
-// Estimate the height (in points) a single question will occupy when rendered
-function estimateQuestionHeight(
-  q: {
-    question_type: string
-    question_text: string
-    options: Record<string, string> | null
-    explanation?: string
-  },
-  type: 'question' | 'answer'
-): number {
-  // Base: badge line + question text (approx 14pt per line, ~60 chars per line at 11pt)
-  const charsPerLine = 55
-  const questionLines = Math.ceil(q.question_text.length / charsPerLine) || 1
-  let height = 16 + questionLines * 14  // badge row + question text
-
-  if (type === 'question') {
-    // MC / TF options
-    if (q.options && typeof q.options === 'object') {
-      const optCount = Object.keys(q.options).filter(k => k.length <= 1).length
-      height += optCount * 14
-    }
-    // Answer line for fill/short/essay
-    if (['fill', 'short', 'essay'].includes(q.question_type)) {
-      height += q.question_type === 'fill' ? 18 : 36
-    }
-  } else {
-    // Answer key + explanation
-    height += 14  // answer line
-    if (q.explanation) {
-      const expLines = Math.ceil(q.explanation.length / charsPerLine) || 1
-      height += expLines * 12
+/**
+ * Distribute questions evenly across targetPages pages.
+ * Uses question count (not height) for predictable, uniform distribution.
+ * Falls back to natural page-break if questions overflow a page.
+ */
+function distributeQuestions(totalQ: number, targetPages: number): number[][] {
+  // Clamp: we need at least 1 page, and at most totalQ pages
+  const pages = Math.max(1, Math.min(targetPages, totalQ))
+  const qPerPage = Math.ceil(totalQ / pages)
+  const buckets: number[][] = []
+  for (let p = 0; p < pages; p++) {
+    const start = p * qPerPage
+    const end = Math.min(start + qPerPage, totalQ)
+    if (start < totalQ) {
+      buckets.push(Array.from({ length: end - start }, (_, i) => start + i))
     }
   }
-
-  height += 16  // moveDown(0.8) spacing after each question ≈ 16pt
-  return height
+  // Pad empty pages if needed
+  while (buckets.length < pages) buckets.push([])
+  return buckets
 }
 
 async function buildPdf(
@@ -74,18 +56,15 @@ async function buildPdf(
     doc.on('end', () => resolve(Buffer.concat(chunks)))
     doc.on('error', reject)
 
-    const registerFonts = () => {
+    const setFont = (bold = false, size = 12) => {
       if (useCjk) {
         doc.registerFont('Regular', FONT_REGULAR)
         doc.registerFont('Bold', FONT_BOLD)
+        doc.font(bold ? 'Bold' : 'Regular').fontSize(size)
+      } else {
+        doc.font(bold ? 'Helvetica-Bold' : 'Helvetica').fontSize(size)
       }
     }
-    const setFont = (bold = false, size = 12) => {
-      if (useCjk) doc.font(bold ? 'Bold' : 'Regular').fontSize(size)
-      else doc.font(bold ? 'Helvetica-Bold' : 'Helvetica').fontSize(size)
-    }
-
-    registerFonts()
 
     // ── Watermark helper ──────────────────────────────────────────────────────
     const drawWatermarkOnPage = () => {
@@ -111,7 +90,10 @@ async function buildPdf(
         doc.moveDown(0.3)
         setFont(false, 11)
         doc.fillColor('#2d6a4f')
-        doc.text(`${paper.subject as string} · ${paper.topic as string} · ${paper.unit as string}`, { align: 'center' })
+        doc.text(
+          `${paper.subject as string} · ${paper.topic as string} · ${paper.unit as string}`,
+          { align: 'center' }
+        )
         doc.moveDown(0.3)
         setFont(false, 9)
         doc.fillColor('#5a7a65')
@@ -128,17 +110,19 @@ async function buildPdf(
         doc.text('日期：＿＿＿＿＿')
         doc.moveDown(1)
       } else {
-        // Continuation header on subsequent pages
         setFont(false, 9)
         doc.fillColor('#5a7a65')
-        doc.text(`殷學社教育中心 · ${paper.subject as string} · ${paper.unit as string}（續）`, { align: 'center' })
+        doc.text(
+          `殷學社教育中心 · ${paper.subject as string} · ${paper.unit as string}（續）`,
+          { align: 'center' }
+        )
         doc.moveDown(0.5)
         doc.moveTo(PAGE_MARGIN, doc.y).lineTo(545, doc.y).strokeColor('#e0ebe3').lineWidth(1).stroke()
         doc.moveDown(0.5)
       }
     }
 
-    // ── Pre-calculate question heights and distribute across pages ────────────
+    // ── Distribute questions evenly ───────────────────────────────────────────
     const typedQuestions = questions as Array<{
       question_number: number
       question_type: string
@@ -148,68 +132,7 @@ async function buildPdf(
       explanation: string
     }>
 
-    const qHeights = typedQuestions.map(q => estimateQuestionHeight(q, type))
-    const totalQHeight = qHeights.reduce((a, b) => a + b, 0)
-
-    // Available content height per page (first page has header, rest have small header)
-    const firstPageHeaderHeight = 120  // approx height of title + student info
-    const contPageHeaderHeight = 35    // approx height of continuation header
-    const firstPageAvail = CONTENT_BOTTOM - PAGE_MARGIN - firstPageHeaderHeight
-    const contPageAvail = CONTENT_BOTTOM - PAGE_MARGIN - contPageHeaderHeight
-
-    // Determine how many pages we actually need
-    let neededPages = 1
-    let remaining = firstPageAvail
-    for (const h of qHeights) {
-      if (h > remaining) {
-        neededPages++
-        remaining = contPageAvail
-      }
-      remaining -= h
-    }
-    const actualPages = Math.max(neededPages, targetPages)
-
-    // Distribute questions: aim for equal height per page
-    const heightPerPage = totalQHeight / actualPages
-
-    // Build page buckets
-    const pageBuckets: number[][] = [[]]  // pageBuckets[i] = array of question indices
-    let currentPage = 0
-    let currentPageHeight = 0
-    const pageCapacity = (p: number) => p === 0 ? firstPageAvail : contPageAvail
-
-    for (let i = 0; i < typedQuestions.length; i++) {
-      const qh = qHeights[i]
-      const cap = pageCapacity(currentPage)
-
-      // Check if adding this question would exceed the page capacity
-      // AND we still have more pages to use
-      const wouldExceed = currentPageHeight + qh > cap
-      const hasMorePages = currentPage < actualPages - 1
-
-      // Also check if we're behind schedule (should have moved to next page already)
-      const targetHeightSoFar = heightPerPage * (currentPage + 1)
-      const actualHeightSoFar = pageBuckets
-        .slice(0, currentPage + 1)
-        .flat()
-        .reduce((sum, idx) => sum + qHeights[idx], 0) + currentPageHeight
-
-      const isBehindSchedule = actualHeightSoFar > targetHeightSoFar && hasMorePages
-
-      if ((wouldExceed || isBehindSchedule) && hasMorePages) {
-        currentPage++
-        currentPageHeight = 0
-        pageBuckets.push([])
-      }
-
-      pageBuckets[currentPage].push(i)
-      currentPageHeight += qh
-    }
-
-    // Pad to actualPages if needed
-    while (pageBuckets.length < actualPages) {
-      pageBuckets.push([])
-    }
+    const pageBuckets = distributeQuestions(typedQuestions.length, targetPages)
 
     // ── Render pages ──────────────────────────────────────────────────────────
     const typeLabel: Record<string, string> = {
@@ -224,6 +147,12 @@ async function buildPdf(
       const bucket = pageBuckets[pageIdx]
       for (const qIdx of bucket) {
         const q = typedQuestions[qIdx]
+
+        // Safety: if we're near the bottom of the page, add a new page
+        if (doc.y > CONTENT_BOTTOM - 40) {
+          doc.addPage()
+          drawPageHeader(false)
+        }
 
         // Question badge + text
         setFont(true, 10)
