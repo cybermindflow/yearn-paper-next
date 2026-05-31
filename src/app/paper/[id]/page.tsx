@@ -145,17 +145,19 @@ export default function PaperDetailPage() {
 
         {/* Actions */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
-          {(paper.delivery_mode === 'online' || !paper.delivery_mode) && paper.status !== 'completed' && (
+          {(paper.delivery_mode === 'online' || !paper.delivery_mode) && (
             <button onClick={() => router.push(`/practice/${id}`)}
               className="btn-primary flex items-center justify-center gap-2 py-3">
-              <PlayCircle size={18} /> 開始線上作答
+              <PlayCircle size={18} />
+              {paper.status === 'completed' ? '重新作答' : '開始線上作答'}
             </button>
           )}
-          {paper.delivery_mode === 'pdf' && paper.status !== 'completed' && (
+          {paper.delivery_mode === 'pdf' && (
             <button onClick={() => router.push(`/practice/${id}`)}
               className="btn-ghost flex items-center justify-center gap-2 py-3 border"
               style={{ borderColor: 'var(--brand)' }}>
-              <PlayCircle size={16} /> 線上作答（PDF版亦可）
+              <PlayCircle size={16} />
+              {paper.status === 'completed' ? '重新作答' : '線上作答（PDF版亦可）'}
             </button>
           )}
           <button onClick={() => downloadPdf('question')} disabled={downloading === 'question'}
@@ -168,7 +170,7 @@ export default function PaperDetailPage() {
             {downloading === 'answer' ? <Loader2 size={16} className="animate-spin" /> : <FileText size={16} />}
             下載答案卷
           </button>
-          {paper.delivery_mode === 'pdf' && paper.status !== 'completed' && (
+          {paper.delivery_mode === 'pdf' && (
             <button onClick={() => setShowManual(v => !v)}
               className="btn-ghost flex items-center justify-center gap-2 py-3 border"
               style={{ borderColor: 'var(--border)' }}>
