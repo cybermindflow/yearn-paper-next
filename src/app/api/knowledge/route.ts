@@ -13,20 +13,21 @@ export async function GET(req: NextRequest) {
     ch: '中文科',
     en: '英文科',
   }
-  const subjectName = subjectMap[subject] || '常識科'
+  // Support both short codes (gs, ma) and full names (常識科, 數學科)
+  const subjectName = subjectMap[subject] || subject
 
   // For 常識科: use static knowledge base (existing behaviour)
-  if (subject === 'gs') {
+  if (subjectName === '常識科') {
     return NextResponse.json({ knowledge: KNOWLEDGE_BASE })
   }
 
-  // For 數學科 and others: try Supabase first, fallback to empty
+  // For 數學科 and others: query Supabase using only existing columns
   try {
     const { data, error } = await supabaseAdmin
       .from('knowledge_chunks')
-      .select('id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, applicable_question_types, source')
+      .select('id, subject, year, topic, unit, knowledge_point, learning_objective, level, applicable_question_types, source')
       .eq('subject', subjectName)
-      .order('id')
+      .order('unit')
 
     if (error) {
       console.error('[knowledge API] Supabase error:', error.message)
