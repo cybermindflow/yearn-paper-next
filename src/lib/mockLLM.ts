@@ -189,7 +189,7 @@ async function callDeepSeekAPI(
   userPrompt: string
 ): Promise<DeepSeekResponse | null> {
   const apiKey = process.env.DEEPSEEK_API_KEY
-  const model = process.env.DEEPSEEK_MODEL || 'deepseek-v4-pro'
+  const model = process.env.DEEPSEEK_MODEL || 'deepseek-chat'
   const baseUrl = 'https://api.deepseek.com'
 
   if (!apiKey) {
