@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import AppLayout from '@/components/AppLayout'
 import StepIndicator from '@/components/StepIndicator'
@@ -30,7 +30,7 @@ const STEPS = [
   { label: '題型設定', sublabel: '確認' },
 ]
 
-export default function Step1Page() {
+function Step1Content() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [selectedGrade, setSelectedGrade] = useState<string | null>(null)
@@ -127,5 +127,19 @@ export default function Step1Page() {
         </div>
       </div>
     </AppLayout>
+  )
+}
+
+export default function Step1Page() {
+  return (
+    <Suspense fallback={
+      <AppLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin w-8 h-8 border-4 rounded-full" style={{ borderColor: 'var(--brand)', borderTopColor: 'transparent' }} />
+        </div>
+      </AppLayout>
+    }>
+      <Step1Content />
+    </Suspense>
   )
 }
