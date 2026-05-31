@@ -4,7 +4,7 @@
 **Vercel URL**：https://yearn-paper-next.vercel.app/  
 **GitHub Repo**：私有倉庫（cybermindflows/yearn-paper-next）  
 **最後更新**：2026-05-31  
-**最新 Commit**：Phase 2 數學科知識圖譜（待部署）
+**最新 Commit**：`3cca125` fix: step2 group by topic field
 
 ---
 
@@ -463,6 +463,68 @@
 | 手機號 | `12345678` |
 | 密碼 | `1234` |
 | 角色 | 家長 |
+
+---
+
+---
+
+## 九、Phase 2 執行記錄（2026-05-31）
+
+### 目標
+建立小三數學科「去出版商化」知識圖譜，開放 Step 1 數學科選項，Step 2 顯示三範疇分組（L1/L2/L3），更新 DeepSeek Prompt，匯入 48 筆知識點至 Supabase。
+
+### 執行步驟與繞道記錄
+
+| 步驟 | 操作 | 結果 | 繞道說明 |
+|------|------|------|----------|
+| 1 | 建立 `supabase-math-p3.sql`（48 筆 INSERT + ALTER TABLE） | 本地完成 | — |
+| 2 | 建立 `/api/setup/math-migration` API 端點 | 本地完成 | — |
+| 3 | 更新 Step 1：數學科可點擊 | 本地完成 | — |
+| 4 | 更新 Step 2：三範疇分組 + L1/L2/L3 篩選 | 本地完成 | — |
+| 5 | 更新 knowledge API：支援 `subject=ma` 映射 | 本地完成 | — |
+| 6 | 更新 generate route：數學科從 Supabase 讀取知識點 | 本地完成 | — |
+| 7 | 更新 mockLLM.ts：加入數學科 System Prompt | 本地完成 | — |
+| 8 | 建立 GitHub 倉庫 `cybermindflow/yearn-paper-next` | 成功 | **繞道 A**：原 remote 未設定，需新建倉庫 |
+| 9 | 推送代碼至 GitHub | 成功（commit `a6e49e1`） | — |
+| 10 | 觸發 Vercel 部署（`dpl_5QYiszuct3SYqxaLngLcYNbqNvRN`） | READY | — |
+| 11 | 執行 Math Migration API | **失敗** | **繞道 B**：`exec_sql` RPC 不存在於此 Supabase 實例 |
+| 12 | 修復 Migration API：改用 `supabase.from().insert()` | 本地完成 | — |
+| 13 | 第二次部署 | **失敗** | **繞道 C**：`id` 欄位為 UUID 類型，不接受 `M3_01_L1` 字串 |
+| 14 | 修復 Migration API：移除 `id` 欄位（讓 Supabase 自動生成 UUID），將知識點代碼存入 `unit` 欄位 | 本地完成 | — |
+| 15 | 第三次部署（`dpl_k1AoF6GvTDdWGBgydprLLrV9MrVV`） | READY | — |
+| 16 | 執行 Math Migration API | **失敗** | **繞道 D**：knowledge API 查詢不存在的 `category` 欄位，返回 500 錯誤 |
+| 17 | 修復 knowledge API：移除 `category`/`subcategory` 欄位查詢，改用現有欄位 | 本地完成 | — |
+| 18 | 第四次部署 | READY | — |
+| 19 | 執行 Math Migration API | **成功**：48 筆知識點匯入 Supabase | — |
+| 20 | 截圖驗收 Step 2 | 顯示「範疇：其他（48/48）」 | **繞道 E**：Step 2 分組使用 `k.category`（不存在），應改用 `k.topic` |
+| 21 | 修復 Step 2 分組邏輯：改用 `topic` 作為範疇，`knowledge_point` 作為子分組 | 本地完成 | — |
+| 22 | 第五次部署（commit `3cca125`） | READY | — |
+| 23 | 截圖驗收 Step 2 | **成功**：三範疇正確分組（數 24/24、度量 15/15、圖形與空間 9/9） | — |
+
+### 繞道摘要（共 5 次）
+
+| 繞道 | 原因 | 解決方案 |
+|------|------|----------|
+| A：GitHub remote 未設定 | 本地倉庫無 remote，無法直接推送 | 在 `cybermindflow` 帳號新建私有倉庫 |
+| B：`exec_sql` RPC 不存在 | Migration API 使用 Supabase 自定義函數，但此實例未建立 | 改用 `supabase.from().insert()` 直接操作 |
+| C：`id` 欄位類型衝突 | `knowledge_chunks.id` 為 UUID，不接受字串代碼 | 移除 `id` 欄位，讓 Supabase 自動生成 UUID；知識點代碼存入 `unit` |
+| D：`category` 欄位不存在 | knowledge API 查詢 `category` 欄位，但 ALTER TABLE 未執行 | 修復 API，改用現有欄位；`topic` 作為分組依據 |
+| E：Step 2 分組邏輯錯誤 | Step 2 使用 `k.category`（不存在），導致全部歸入「其他」 | 改用 `k.topic` 作為範疇，`k.knowledge_point` 作為子分組 |
+
+### 最終驗收結果
+
+- Step 1：數學科可點擊 ✅
+- Step 2：三範疇分組（數 24/24、度量 15/15、圖形與空間 9/9）✅
+- Step 2：L1/L2/L3 層級篩選按鈕 ✅
+- Supabase：48 筆數學科知識點已匯入 ✅
+- DeepSeek Prompt：數學科 System Prompt 已更新 ✅
+- Vercel 部署：READY（commit `3cca125`）✅
+
+### 待辦（Phase 2 遺留）
+
+- ALTER TABLE 新增 `category`、`subcategory`、`difficulty_params`、`sample_question_l1/l2/l3`、`sample_answer_l1/l2/l3` 欄位（需在 Supabase Dashboard 手動執行，或建立 Supabase Management API 端點）
+- Step 3 數學科題型（MC/Short Answer/Long Answer）驗收
+- 完整出卷流程端對端測試（選數學科 → Step 2 → Step 3 → 生成試卷）
 
 ---
 
