@@ -1,0 +1,777 @@
+-- ============================================================
+-- Yearn-paper Phase 2：小三數學科「去出版商化」知識圖譜
+-- Migration 檔案：supabase-math-p3.sql
+-- 日期：2026-05-31
+-- 說明：
+--   1. ALTER TABLE knowledge_chunks 新增 Phase 2 欄位
+--   2. INSERT 48 筆小三數學科知識點（16 知識點 × 3 層級）
+-- 來源：香港教育局《小學數學課程指引》公開資料
+-- ============================================================
+
+-- ── Step 1：ALTER TABLE 新增欄位 ─────────────────────────────
+
+ALTER TABLE knowledge_chunks
+ADD COLUMN IF NOT EXISTS category VARCHAR(50),
+ADD COLUMN IF NOT EXISTS subcategory VARCHAR(100),
+ADD COLUMN IF NOT EXISTS difficulty_params JSONB,
+ADD COLUMN IF NOT EXISTS prerequisites TEXT[],
+ADD COLUMN IF NOT EXISTS sample_question_l1 TEXT,
+ADD COLUMN IF NOT EXISTS sample_answer_l1 TEXT,
+ADD COLUMN IF NOT EXISTS sample_question_l2 TEXT,
+ADD COLUMN IF NOT EXISTS sample_answer_l2 TEXT,
+ADD COLUMN IF NOT EXISTS sample_question_l3 TEXT,
+ADD COLUMN IF NOT EXISTS sample_answer_l3 TEXT;
+
+-- ── Step 2：INSERT 48 筆小三數學科知識點 ─────────────────────
+
+-- ────────────────────────────────────────────────────────────
+-- 知識範疇一：數（Number）
+-- ────────────────────────────────────────────────────────────
+
+-- M3_01：五位數以內的數
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_01_L1', '數學科', 'P3', '數', '五位數以內的數',
+  '數', '數（Number）',
+  '五位數以內的數（L1 基礎）',
+  '能讀出、寫出和比較 10,000 以內的數',
+  1,
+  '{"digit_range": "1000-9999", "steps": 1}'::jsonb,
+  ARRAY['mc', 'fill'],
+  '用數字寫出「三千二百四十五」。', '3245',
+  '比較 45,678 和 45,768，哪個較大？', '45,768',
+  '一個五位數，萬位是 7，千位比萬位少 3，百位是 0，十位和個位相同且加起來是 8。這個數是甚麼？', '74044',
+  '香港教育局《小學數學課程指引》'
+);
+
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_01_L2', '數學科', 'P3', '數', '五位數以內的數',
+  '數', '數（Number）',
+  '五位數以內的數（L2 標準）',
+  '能讀出、寫出和比較 100,000 以內的數',
+  2,
+  '{"digit_range": "10000-99999", "steps": 2}'::jsonb,
+  ARRAY['mc', 'fill'],
+  '用數字寫出「三千二百四十五」。', '3245',
+  '比較 45,678 和 45,768，哪個較大？', '45,768',
+  '一個五位數，萬位是 7，千位比萬位少 3，百位是 0，十位和個位相同且加起來是 8。這個數是甚麼？', '74044',
+  '香港教育局《小學數學課程指引》'
+);
+
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_01_L3', '數學科', 'P3', '數', '五位數以內的數',
+  '數', '數（Number）',
+  '五位數以內的數（L3 挑戰）',
+  '能應用位值概念解決非常規問題',
+  3,
+  '{"digit_range": "10000-99999", "steps": 3, "note": "含缺失位值或不完整資訊"}'::jsonb,
+  ARRAY['short'],
+  '用數字寫出「三千二百四十五」。', '3245',
+  '比較 45,678 和 45,768，哪個較大？', '45,768',
+  '一個五位數，萬位是 7，千位比萬位少 3，百位是 0，十位和個位相同且加起來是 8。這個數是甚麼？', '74044',
+  '香港教育局《小學數學課程指引》'
+);
+
+-- M3_02：加法（不超過四位數）
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_02_L1', '數學科', 'P3', '數', '加法',
+  '數', '數（Number）',
+  '加法（不超過四位數）（L1 基礎）',
+  '能進行不超過三位數的加法運算（不進位）',
+  1,
+  '{"digits": "2-3", "carry": false, "steps": 1}'::jsonb,
+  ARRAY['mc', 'fill'],
+  '234 + 512 = ?', '746',
+  '3,847 + 2,569 = ?', '6,416',
+  '書店上午賣出 1,250 本書，下午比上午多賣出 378 本。全日共賣出多少本書？', '2,878',
+  '香港教育局《小學數學課程指引》'
+);
+
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_02_L2', '數學科', 'P3', '數', '加法',
+  '數', '數（Number）',
+  '加法（不超過四位數）（L2 標準）',
+  '能進行不超過四位數的加法運算（含進位）',
+  2,
+  '{"digits": "3-4", "carry": true, "steps": 1}'::jsonb,
+  ARRAY['mc', 'fill'],
+  '234 + 512 = ?', '746',
+  '3,847 + 2,569 = ?', '6,416',
+  '書店上午賣出 1,250 本書，下午比上午多賣出 378 本。全日共賣出多少本書？', '2,878',
+  '香港教育局《小學數學課程指引》'
+);
+
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_02_L3', '數學科', 'P3', '數', '加法',
+  '數', '數（Number）',
+  '加法（不超過四位數）（L3 挑戰）',
+  '能解決涉及加法的多步驟應用題',
+  3,
+  '{"digits": "3-4", "carry": true, "steps": 2}'::jsonb,
+  ARRAY['short'],
+  '234 + 512 = ?', '746',
+  '3,847 + 2,569 = ?', '6,416',
+  '書店上午賣出 1,250 本書，下午比上午多賣出 378 本。全日共賣出多少本書？', '2,878',
+  '香港教育局《小學數學課程指引》'
+);
+
+-- M3_03：減法（不超過四位數）
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_03_L1', '數學科', 'P3', '數', '減法',
+  '數', '數（Number）',
+  '減法（不超過四位數）（L1 基礎）',
+  '能進行不超過三位數的減法運算（不退位）',
+  1,
+  '{"digits": "2-3", "borrow": false, "steps": 1}'::jsonb,
+  ARRAY['mc', 'fill'],
+  '876 - 234 = ?', '642',
+  '5,000 - 2,347 = ?', '2,653',
+  '巴士上有 200 人，在第一站有 85 人下車，同時有 127 人上車。車上現在有多少人？', '242',
+  '香港教育局《小學數學課程指引》'
+);
+
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_03_L2', '數學科', 'P3', '數', '減法',
+  '數', '數（Number）',
+  '減法（不超過四位數）（L2 標準）',
+  '能進行不超過四位數的減法運算（含退位）',
+  2,
+  '{"digits": "3-4", "borrow": true, "steps": 1}'::jsonb,
+  ARRAY['mc', 'fill'],
+  '876 - 234 = ?', '642',
+  '5,000 - 2,347 = ?', '2,653',
+  '巴士上有 200 人，在第一站有 85 人下車，同時有 127 人上車。車上現在有多少人？', '242',
+  '香港教育局《小學數學課程指引》'
+);
+
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_03_L3', '數學科', 'P3', '數', '減法',
+  '數', '數（Number）',
+  '減法（不超過四位數）（L3 挑戰）',
+  '能解決涉及減法的多步驟應用題',
+  3,
+  '{"digits": "3-4", "borrow": true, "steps": 2}'::jsonb,
+  ARRAY['short'],
+  '876 - 234 = ?', '642',
+  '5,000 - 2,347 = ?', '2,653',
+  '巴士上有 200 人，在第一站有 85 人下車，同時有 127 人上車。車上現在有多少人？', '242',
+  '香港教育局《小學數學課程指引》'
+);
+
+-- M3_04：乘法（不超過兩位數乘一位數）
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_04_L1', '數學科', 'P3', '數', '乘法',
+  '數', '數（Number）',
+  '乘法（不超過兩位數乘一位數）（L1 基礎）',
+  '能進行一位數乘一位數的乘法',
+  1,
+  '{"multiplicand": "1-9", "multiplier": "1-9", "carry": false}'::jsonb,
+  ARRAY['mc', 'fill'],
+  '7 × 8 = ?', '56',
+  '23 × 3 = ?', '69',
+  '每盒有 24 支鉛筆，買了 6 盒，共有多少支鉛筆？', '144',
+  '香港教育局《小學數學課程指引》'
+);
+
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_04_L2', '數學科', 'P3', '數', '乘法',
+  '數', '數（Number）',
+  '乘法（不超過兩位數乘一位數）（L2 標準）',
+  '能進行兩位數乘一位數的乘法（不進位）',
+  2,
+  '{"multiplicand": "10-99", "multiplier": "2-9", "carry": false}'::jsonb,
+  ARRAY['mc', 'fill'],
+  '7 × 8 = ?', '56',
+  '23 × 3 = ?', '69',
+  '每盒有 24 支鉛筆，買了 6 盒，共有多少支鉛筆？', '144',
+  '香港教育局《小學數學課程指引》'
+);
+
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_04_L3', '數學科', 'P3', '數', '乘法',
+  '數', '數（Number）',
+  '乘法（不超過兩位數乘一位數）（L3 挑戰）',
+  '能進行兩位數乘一位數的乘法（含進位）及應用題',
+  3,
+  '{"multiplicand": "10-99", "multiplier": "2-9", "carry": true, "steps": 2}'::jsonb,
+  ARRAY['short'],
+  '7 × 8 = ?', '56',
+  '23 × 3 = ?', '69',
+  '每盒有 24 支鉛筆，買了 6 盒，共有多少支鉛筆？', '144',
+  '香港教育局《小學數學課程指引》'
+);
+
+-- M3_05：除法（不超過兩位數除一位數）
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_05_L1', '數學科', 'P3', '數', '除法',
+  '數', '數（Number）',
+  '除法（不超過兩位數除一位數）（L1 基礎）',
+  '能進行基本除法（整除）',
+  1,
+  '{"dividend": "<=81", "divisor": "2-9", "remainder": false}'::jsonb,
+  ARRAY['mc', 'fill'],
+  '56 ÷ 7 = ?', '8',
+  '58 ÷ 7 = ?', '8 餘 2',
+  '把 85 個蘋果平均分給 6 個小朋友，每人可得多少個？餘下多少個？', '14 個，餘 1 個',
+  '香港教育局《小學數學課程指引》'
+);
+
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_05_L2', '數學科', 'P3', '數', '除法',
+  '數', '數（Number）',
+  '除法（不超過兩位數除一位數）（L2 標準）',
+  '能進行兩位數除一位數的除法（有餘數）',
+  2,
+  '{"dividend": "10-99", "divisor": "2-9", "remainder": true}'::jsonb,
+  ARRAY['mc', 'fill'],
+  '56 ÷ 7 = ?', '8',
+  '58 ÷ 7 = ?', '8 餘 2',
+  '把 85 個蘋果平均分給 6 個小朋友，每人可得多少個？餘下多少個？', '14 個，餘 1 個',
+  '香港教育局《小學數學課程指引》'
+);
+
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_05_L3', '數學科', 'P3', '數', '除法',
+  '數', '數（Number）',
+  '除法（不超過兩位數除一位數）（L3 挑戰）',
+  '能解決涉及除法的應用題',
+  3,
+  '{"dividend": "10-99", "divisor": "2-9", "remainder": true, "steps": 2}'::jsonb,
+  ARRAY['short'],
+  '56 ÷ 7 = ?', '8',
+  '58 ÷ 7 = ?', '8 餘 2',
+  '把 85 個蘋果平均分給 6 個小朋友，每人可得多少個？餘下多少個？', '14 個，餘 1 個',
+  '香港教育局《小學數學課程指引》'
+);
+
+-- M3_06：分數的認識（分母不超過 10）
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_06_L1', '數學科', 'P3', '數', '分數',
+  '數', '數（Number）',
+  '分數的認識（分母不超過 10）（L1 基礎）',
+  '能辨認和讀出基本分數',
+  1,
+  '{"denominator": "2,4,8", "steps": 1}'::jsonb,
+  ARRAY['mc'],
+  '以下哪個圖形表示了 1/2？（選項含圖形描述）', '陰影部分佔整體一半的圖形',
+  '3/8 和 5/8，哪個較大？', '5/8',
+  '一個蛋糕分成 8 份，小明吃了 3 份，小美吃了 2 份。他們共吃了蛋糕的幾分之幾？', '5/8',
+  '香港教育局《小學數學課程指引》'
+);
+
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_06_L2', '數學科', 'P3', '數', '分數',
+  '數', '數（Number）',
+  '分數的認識（分母不超過 10）（L2 標準）',
+  '能比較同分母分數的大小',
+  2,
+  '{"denominator": "2-10", "same_denominator": true}'::jsonb,
+  ARRAY['mc', 'fill'],
+  '以下哪個圖形表示了 1/2？（選項含圖形描述）', '陰影部分佔整體一半的圖形',
+  '3/8 和 5/8，哪個較大？', '5/8',
+  '一個蛋糕分成 8 份，小明吃了 3 份，小美吃了 2 份。他們共吃了蛋糕的幾分之幾？', '5/8',
+  '香港教育局《小學數學課程指引》'
+);
+
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_06_L3', '數學科', 'P3', '數', '分數',
+  '數', '數（Number）',
+  '分數的認識（分母不超過 10）（L3 挑戰）',
+  '能解決涉及分數的生活情境題',
+  3,
+  '{"denominator": "2-10", "steps": 2}'::jsonb,
+  ARRAY['short'],
+  '以下哪個圖形表示了 1/2？（選項含圖形描述）', '陰影部分佔整體一半的圖形',
+  '3/8 和 5/8，哪個較大？', '5/8',
+  '一個蛋糕分成 8 份，小明吃了 3 份，小美吃了 2 份。他們共吃了蛋糕的幾分之幾？', '5/8',
+  '香港教育局《小學數學課程指引》'
+);
+
+-- M3_07：同分母分數加法
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_07_L1', '數學科', 'P3', '數', '分數加法',
+  '數', '數（Number）',
+  '同分母分數加法（L1 基礎）',
+  '能進行同分母分數加法（結果 ≤ 1）',
+  1,
+  '{"denominator": "2-8", "result_lte_1": true}'::jsonb,
+  ARRAY['mc', 'fill'],
+  '1/4 + 2/4 = ?', '3/4',
+  '3/5 + 4/5 = ?', '7/5（或 1 又 2/5）',
+  '姐姐喝了 2/6 杯果汁，弟弟喝了 3/6 杯。他們共喝了幾分之幾杯？', '5/6 杯',
+  '香港教育局《小學數學課程指引》'
+);
+
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_07_L2', '數學科', 'P3', '數', '分數加法',
+  '數', '數（Number）',
+  '同分母分數加法（L2 標準）',
+  '能進行同分母分數加法（結果可 > 1）',
+  2,
+  '{"denominator": "2-10", "result_gt_1": true}'::jsonb,
+  ARRAY['mc', 'fill'],
+  '1/4 + 2/4 = ?', '3/4',
+  '3/5 + 4/5 = ?', '7/5（或 1 又 2/5）',
+  '姐姐喝了 2/6 杯果汁，弟弟喝了 3/6 杯。他們共喝了幾分之幾杯？', '5/6 杯',
+  '香港教育局《小學數學課程指引》'
+);
+
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_07_L3', '數學科', 'P3', '數', '分數加法',
+  '數', '數（Number）',
+  '同分母分數加法（L3 挑戰）',
+  '能解決涉及分數加法的應用題',
+  3,
+  '{"denominator": "2-10", "steps": 2}'::jsonb,
+  ARRAY['short'],
+  '1/4 + 2/4 = ?', '3/4',
+  '3/5 + 4/5 = ?', '7/5（或 1 又 2/5）',
+  '姐姐喝了 2/6 杯果汁，弟弟喝了 3/6 杯。他們共喝了幾分之幾杯？', '5/6 杯',
+  '香港教育局《小學數學課程指引》'
+);
+
+-- M3_08：同分母分數減法
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_08_L1', '數學科', 'P3', '數', '分數減法',
+  '數', '數（Number）',
+  '同分母分數減法（L1 基礎）',
+  '能進行同分母分數減法',
+  1,
+  '{"denominator": "2-8", "steps": 1}'::jsonb,
+  ARRAY['mc', 'fill'],
+  '5/8 - 2/8 = ?', '3/8',
+  '1 - 3/10 = ?', '7/10',
+  '一條絲帶長 7/8 米，用了 3/8 米後，還餘多少米？', '4/8 米（或 1/2 米）',
+  '香港教育局《小學數學課程指引》'
+);
+
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_08_L2', '數學科', 'P3', '數', '分數減法',
+  '數', '數（Number）',
+  '同分母分數減法（L2 標準）',
+  '能進行同分母分數減法（從整數減）',
+  2,
+  '{"denominator": "2-10", "from_whole": true}'::jsonb,
+  ARRAY['mc', 'fill'],
+  '5/8 - 2/8 = ?', '3/8',
+  '1 - 3/10 = ?', '7/10',
+  '一條絲帶長 7/8 米，用了 3/8 米後，還餘多少米？', '4/8 米（或 1/2 米）',
+  '香港教育局《小學數學課程指引》'
+);
+
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_08_L3', '數學科', 'P3', '數', '分數減法',
+  '數', '數（Number）',
+  '同分母分數減法（L3 挑戰）',
+  '能解決涉及分數減法的應用題',
+  3,
+  '{"denominator": "2-10", "steps": 2}'::jsonb,
+  ARRAY['short'],
+  '5/8 - 2/8 = ?', '3/8',
+  '1 - 3/10 = ?', '7/10',
+  '一條絲帶長 7/8 米，用了 3/8 米後，還餘多少米？', '4/8 米（或 1/2 米）',
+  '香港教育局《小學數學課程指引》'
+);
+
+-- ────────────────────────────────────────────────────────────
+-- 知識範疇二：度量（Measures）
+-- ────────────────────────────────────────────────────────────
+
+-- M3_09：長度（毫米、厘米、米、公里）
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_09_L1', '數學科', 'P3', '度量', '長度',
+  '度量', '度量（Measures）',
+  '長度（毫米、厘米、米、公里）（L1 基礎）',
+  '能辨認和選擇合適的長度單位',
+  1,
+  '{"units": ["mm", "cm"], "conversion": false}'::jsonb,
+  ARRAY['mc', 'fill'],
+  '一枝鉛筆長約 15 ___。（選擇合適單位）', 'cm（厘米）',
+  '3 米 = ? 厘米', '300',
+  '一條路長 2 公里，已修了 850 米，還餘多少米未修？', '1,150 米',
+  '香港教育局《小學數學課程指引》'
+);
+
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_09_L2', '數學科', 'P3', '度量', '長度',
+  '度量', '度量（Measures）',
+  '長度（毫米、厘米、米、公里）（L2 標準）',
+  '能進行長度單位換算',
+  2,
+  '{"units": ["m", "cm", "km", "m"], "conversion": true}'::jsonb,
+  ARRAY['mc', 'fill'],
+  '一枝鉛筆長約 15 ___。（選擇合適單位）', 'cm（厘米）',
+  '3 米 = ? 厘米', '300',
+  '一條路長 2 公里，已修了 850 米，還餘多少米未修？', '1,150 米',
+  '香港教育局《小學數學課程指引》'
+);
+
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_09_L3', '數學科', 'P3', '度量', '長度',
+  '度量', '度量（Measures）',
+  '長度（毫米、厘米、米、公里）（L3 挑戰）',
+  '能解決涉及長度的應用題',
+  3,
+  '{"units": ["km", "m"], "steps": 2}'::jsonb,
+  ARRAY['short'],
+  '一枝鉛筆長約 15 ___。（選擇合適單位）', 'cm（厘米）',
+  '3 米 = ? 厘米', '300',
+  '一條路長 2 公里，已修了 850 米，還餘多少米未修？', '1,150 米',
+  '香港教育局《小學數學課程指引》'
+);
+
+-- M3_10：重量（克、公斤）
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_10_L1', '數學科', 'P3', '度量', '重量',
+  '度量', '度量（Measures）',
+  '重量（克、公斤）（L1 基礎）',
+  '能辨認和選擇合適的重量單位',
+  1,
+  '{"units": ["g", "kg"], "conversion": false}'::jsonb,
+  ARRAY['mc', 'fill'],
+  '一個蘋果約重 200 ___。（選擇合適單位）', 'g（克）',
+  '2 公斤 = ? 克', '2,000',
+  '一袋米重 5 公斤，一袋糖重 2,500 克。米比糖重多少公斤？', '2.5 公斤',
+  '香港教育局《小學數學課程指引》'
+);
+
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_10_L2', '數學科', 'P3', '度量', '重量',
+  '度量', '度量（Measures）',
+  '重量（克、公斤）（L2 標準）',
+  '能進行重量單位換算',
+  2,
+  '{"units": ["kg", "g"], "conversion": true}'::jsonb,
+  ARRAY['mc', 'fill'],
+  '一個蘋果約重 200 ___。（選擇合適單位）', 'g（克）',
+  '2 公斤 = ? 克', '2,000',
+  '一袋米重 5 公斤，一袋糖重 2,500 克。米比糖重多少公斤？', '2.5 公斤',
+  '香港教育局《小學數學課程指引》'
+);
+
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_10_L3', '數學科', 'P3', '度量', '重量',
+  '度量', '度量（Measures）',
+  '重量（克、公斤）（L3 挑戰）',
+  '能解決涉及重量的應用題',
+  3,
+  '{"units": ["kg", "g"], "steps": 2}'::jsonb,
+  ARRAY['short'],
+  '一個蘋果約重 200 ___。（選擇合適單位）', 'g（克）',
+  '2 公斤 = ? 克', '2,000',
+  '一袋米重 5 公斤，一袋糖重 2,500 克。米比糖重多少公斤？', '2.5 公斤',
+  '香港教育局《小學數學課程指引》'
+);
+
+-- M3_11：容量（毫升、升）
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_11_L1', '數學科', 'P3', '度量', '容量',
+  '度量', '度量（Measures）',
+  '容量（毫升、升）（L1 基礎）',
+  '能辨認和選擇合適的容量單位',
+  1,
+  '{"units": ["mL", "L"], "conversion": false}'::jsonb,
+  ARRAY['mc', 'fill'],
+  '一枝礦泉水約 500 ___。（選擇合適單位）', 'mL（毫升）',
+  '1.5 升 = ? 毫升', '1,500',
+  '一個水壺容量為 2 升，已倒了 3 杯各 300 毫升的水。壺中還餘多少毫升？', '1,100 毫升',
+  '香港教育局《小學數學課程指引》'
+);
+
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_11_L2', '數學科', 'P3', '度量', '容量',
+  '度量', '度量（Measures）',
+  '容量（毫升、升）（L2 標準）',
+  '能進行容量單位換算',
+  2,
+  '{"units": ["L", "mL"], "conversion": true}'::jsonb,
+  ARRAY['mc', 'fill'],
+  '一枝礦泉水約 500 ___。（選擇合適單位）', 'mL（毫升）',
+  '1.5 升 = ? 毫升', '1,500',
+  '一個水壺容量為 2 升，已倒了 3 杯各 300 毫升的水。壺中還餘多少毫升？', '1,100 毫升',
+  '香港教育局《小學數學課程指引》'
+);
+
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_11_L3', '數學科', 'P3', '度量', '容量',
+  '度量', '度量（Measures）',
+  '容量（毫升、升）（L3 挑戰）',
+  '能解決涉及容量的應用題',
+  3,
+  '{"units": ["L", "mL"], "steps": 2}'::jsonb,
+  ARRAY['short'],
+  '一枝礦泉水約 500 ___。（選擇合適單位）', 'mL（毫升）',
+  '1.5 升 = ? 毫升', '1,500',
+  '一個水壺容量為 2 升，已倒了 3 杯各 300 毫升的水。壺中還餘多少毫升？', '1,100 毫升',
+  '香港教育局《小學數學課程指引》'
+);
+
+-- M3_12：時間（時、分、秒；24 小時制）
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_12_L1', '數學科', 'P3', '度量', '時間',
+  '度量', '度量（Measures）',
+  '時間（時、分、秒；24 小時制）（L1 基礎）',
+  '能讀出鐘面時間（時和分）',
+  1,
+  '{"format": "12h", "steps": 1}'::jsonb,
+  ARRAY['mc', 'fill'],
+  '時針指向 3，分針指向 12，是幾時？', '3 時',
+  '電影由下午 2:15 開始，3:45 結束。電影播放了多久？', '1 小時 30 分鐘',
+  '由香港飛往東京的航班 08:30 起飛，飛行時間為 4 小時 15 分鐘。抵達東京的當地時間是？（東京比香港快 1 小時）', '13:45（東京時間）',
+  '香港教育局《小學數學課程指引》'
+);
+
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_12_L2', '數學科', 'P3', '度量', '時間',
+  '度量', '度量（Measures）',
+  '時間（時、分、秒；24 小時制）（L2 標準）',
+  '能進行時間單位換算和計算時間間隔',
+  2,
+  '{"format": "12h", "interval": true, "steps": 2}'::jsonb,
+  ARRAY['mc', 'fill', 'short'],
+  '時針指向 3，分針指向 12，是幾時？', '3 時',
+  '電影由下午 2:15 開始，3:45 結束。電影播放了多久？', '1 小時 30 分鐘',
+  '由香港飛往東京的航班 08:30 起飛，飛行時間為 4 小時 15 分鐘。抵達東京的當地時間是？（東京比香港快 1 小時）', '13:45（東京時間）',
+  '香港教育局《小學數學課程指引》'
+);
+
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_12_L3', '數學科', 'P3', '度量', '時間',
+  '度量', '度量（Measures）',
+  '時間（時、分、秒；24 小時制）（L3 挑戰）',
+  '能解決涉及 24 小時制和時間間隔的應用題',
+  3,
+  '{"format": "24h", "timezone": true, "steps": 3}'::jsonb,
+  ARRAY['short'],
+  '時針指向 3，分針指向 12，是幾時？', '3 時',
+  '電影由下午 2:15 開始，3:45 結束。電影播放了多久？', '1 小時 30 分鐘',
+  '由香港飛往東京的航班 08:30 起飛，飛行時間為 4 小時 15 分鐘。抵達東京的當地時間是？（東京比香港快 1 小時）', '13:45（東京時間）',
+  '香港教育局《小學數學課程指引》'
+);
+
+-- M3_13：貨幣（港元）
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_13_L1', '數學科', 'P3', '度量', '貨幣',
+  '度量', '度量（Measures）',
+  '貨幣（港元）（L1 基礎）',
+  '能辨認香港流通貨幣和計算簡單總值',
+  1,
+  '{"currency": "HKD", "steps": 1}'::jsonb,
+  ARRAY['mc', 'fill'],
+  '一個麵包 $6，一枝筆 $8。共要付多少？', '$14',
+  '小明用 $50 買了一本 $27 的書。應找回多少？', '$23',
+  '鉛筆每枝 $3，買 4 枝；簿每本 $5，買 2 本。付 $50，應找回多少？', '$28',
+  '香港教育局《小學數學課程指引》'
+);
+
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_13_L2', '數學科', 'P3', '度量', '貨幣',
+  '度量', '度量（Measures）',
+  '貨幣（港元）（L2 標準）',
+  '能計算找續',
+  2,
+  '{"currency": "HKD", "change": true, "steps": 1}'::jsonb,
+  ARRAY['mc', 'fill'],
+  '一個麵包 $6，一枝筆 $8。共要付多少？', '$14',
+  '小明用 $50 買了一本 $27 的書。應找回多少？', '$23',
+  '鉛筆每枝 $3，買 4 枝；簿每本 $5，買 2 本。付 $50，應找回多少？', '$28',
+  '香港教育局《小學數學課程指引》'
+);
+
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_13_L3', '數學科', 'P3', '度量', '貨幣',
+  '度量', '度量（Measures）',
+  '貨幣（港元）（L3 挑戰）',
+  '能解決涉及貨幣的多步驟應用題',
+  3,
+  '{"currency": "HKD", "steps": 3}'::jsonb,
+  ARRAY['short'],
+  '一個麵包 $6，一枝筆 $8。共要付多少？', '$14',
+  '小明用 $50 買了一本 $27 的書。應找回多少？', '$23',
+  '鉛筆每枝 $3，買 4 枝；簿每本 $5，買 2 本。付 $50，應找回多少？', '$28',
+  '香港教育局《小學數學課程指引》'
+);
+
+-- ────────────────────────────────────────────────────────────
+-- 知識範疇三：圖形與空間（Shape and Space）
+-- ────────────────────────────────────────────────────────────
+
+-- M3_14：周界（簡單圖形）
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_14_L1', '數學科', 'P3', '圖形與空間', '周界',
+  '圖形與空間', '圖形與空間（Shape and Space）',
+  '周界（簡單圖形）（L1 基礎）',
+  '能計算正方形的周界',
+  1,
+  '{"shape": "square", "steps": 1}'::jsonb,
+  ARRAY['mc', 'fill'],
+  '正方形邊長 5 厘米，周界是多少？', '20 厘米',
+  '長方形長 8 厘米，闊 3 厘米，周界是多少？', '22 厘米',
+  '一個長方形花園長 12 米、闊 8 米。沿花園四周建籬笆，籬笆總長多少米？如每米籬笆 $5，共要付多少？', '40 米，$200',
+  '香港教育局《小學數學課程指引》'
+);
+
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_14_L2', '數學科', 'P3', '圖形與空間', '周界',
+  '圖形與空間', '圖形與空間（Shape and Space）',
+  '周界（簡單圖形）（L2 標準）',
+  '能計算長方形的周界',
+  2,
+  '{"shape": "rectangle", "steps": 2}'::jsonb,
+  ARRAY['mc', 'fill'],
+  '正方形邊長 5 厘米，周界是多少？', '20 厘米',
+  '長方形長 8 厘米，闊 3 厘米，周界是多少？', '22 厘米',
+  '一個長方形花園長 12 米、闊 8 米。沿花園四周建籬笆，籬笆總長多少米？如每米籬笆 $5，共要付多少？', '40 米，$200',
+  '香港教育局《小學數學課程指引》'
+);
+
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_14_L3', '數學科', 'P3', '圖形與空間', '周界',
+  '圖形與空間', '圖形與空間（Shape and Space）',
+  '周界（簡單圖形）（L3 挑戰）',
+  '能解決涉及周界的應用題',
+  3,
+  '{"shape": "irregular_rectangle", "steps": 3}'::jsonb,
+  ARRAY['short'],
+  '正方形邊長 5 厘米，周界是多少？', '20 厘米',
+  '長方形長 8 厘米，闊 3 厘米，周界是多少？', '22 厘米',
+  '一個長方形花園長 12 米、闊 8 米。沿花園四周建籬笆，籬笆總長多少米？如每米籬笆 $5，共要付多少？', '40 米，$200',
+  '香港教育局《小學數學課程指引》'
+);
+
+-- M3_15：平面圖形（三角形、四邊形等）
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_15_L1', '數學科', 'P3', '圖形與空間', '平面圖形',
+  '圖形與空間', '圖形與空間（Shape and Space）',
+  '平面圖形（三角形、四邊形等）（L1 基礎）',
+  '能辨認和命名基本平面圖形',
+  1,
+  '{"shapes": ["triangle", "quadrilateral"], "steps": 1}'::jsonb,
+  ARRAY['mc'],
+  '以下哪個是三邊形？（選項含圖形描述）', '三角形',
+  '正方形有多少條相等的邊？多少個直角？', '4 條相等邊，4 個直角',
+  '正方形和長方形有甚麼相同和不同之處？', '相同：都有四條邊、四個直角；不同：正方形四邊相等，長方形只有對邊相等',
+  '香港教育局《小學數學課程指引》'
+);
+
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_15_L2', '數學科', 'P3', '圖形與空間', '平面圖形',
+  '圖形與空間', '圖形與空間（Shape and Space）',
+  '平面圖形（三角形、四邊形等）（L2 標準）',
+  '能描述圖形的特性',
+  2,
+  '{"shapes": ["square", "rectangle"], "properties": true}'::jsonb,
+  ARRAY['mc', 'fill', 'short'],
+  '以下哪個是三邊形？（選項含圖形描述）', '三角形',
+  '正方形有多少條相等的邊？多少個直角？', '4 條相等邊，4 個直角',
+  '正方形和長方形有甚麼相同和不同之處？', '相同：都有四條邊、四個直角；不同：正方形四邊相等，長方形只有對邊相等',
+  '香港教育局《小學數學課程指引》'
+);
+
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_15_L3', '數學科', 'P3', '圖形與空間', '平面圖形',
+  '圖形與空間', '圖形與空間（Shape and Space）',
+  '平面圖形（三角形、四邊形等）（L3 挑戰）',
+  '能根據特性分類和比較圖形',
+  3,
+  '{"shapes": ["square", "rectangle"], "compare": true, "steps": 2}'::jsonb,
+  ARRAY['short'],
+  '以下哪個是三邊形？（選項含圖形描述）', '三角形',
+  '正方形有多少條相等的邊？多少個直角？', '4 條相等邊，4 個直角',
+  '正方形和長方形有甚麼相同和不同之處？', '相同：都有四條邊、四個直角；不同：正方形四邊相等，長方形只有對邊相等',
+  '香港教育局《小學數學課程指引》'
+);
+
+-- M3_16：方向和位置
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_16_L1', '數學科', 'P3', '圖形與空間', '方向和位置',
+  '圖形與空間', '圖形與空間（Shape and Space）',
+  '方向和位置（L1 基礎）',
+  '能辨認四個主要方向',
+  1,
+  '{"directions": 4, "steps": 1}'::jsonb,
+  ARRAY['mc', 'fill'],
+  '面向北方，右邊是甚麼方向？', '東',
+  '學校在公園的東北方。公園在學校的哪個方向？', '西南',
+  '小美從家向東走 200 米到公園，再向北走 150 米到圖書館。她從圖書館直接回家，應向哪個方向走？', '西南',
+  '香港教育局《小學數學課程指引》'
+);
+
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_16_L2', '數學科', 'P3', '圖形與空間', '方向和位置',
+  '圖形與空間', '圖形與空間（Shape and Space）',
+  '方向和位置（L2 標準）',
+  '能使用八個方向描述位置',
+  2,
+  '{"directions": 8, "steps": 1}'::jsonb,
+  ARRAY['mc'],
+  '面向北方，右邊是甚麼方向？', '東',
+  '學校在公園的東北方。公園在學校的哪個方向？', '西南',
+  '小美從家向東走 200 米到公園，再向北走 150 米到圖書館。她從圖書館直接回家，應向哪個方向走？', '西南',
+  '香港教育局《小學數學課程指引》'
+);
+
+INSERT INTO knowledge_chunks (id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, difficulty_params, applicable_question_types, sample_question_l1, sample_answer_l1, sample_question_l2, sample_answer_l2, sample_question_l3, sample_answer_l3, source)
+VALUES (
+  'M3_16_L3', '數學科', 'P3', '圖形與空間', '方向和位置',
+  '圖形與空間', '圖形與空間（Shape and Space）',
+  '方向和位置（L3 挑戰）',
+  '能根據路線圖解決位置問題',
+  3,
+  '{"directions": 8, "route": true, "steps": 3}'::jsonb,
+  ARRAY['short'],
+  '面向北方，右邊是甚麼方向？', '東',
+  '學校在公園的東北方。公園在學校的哪個方向？', '西南',
+  '小美從家向東走 200 米到公園，再向北走 150 米到圖書館。她從圖書館直接回家，應向哪個方向走？', '西南',
+  '香港教育局《小學數學課程指引》'
+);
+
+-- ── 驗證查詢（執行後確認記錄數量）──────────────────────────
+-- SELECT COUNT(*) FROM knowledge_chunks WHERE subject = '數學科';
+-- 預期結果：48

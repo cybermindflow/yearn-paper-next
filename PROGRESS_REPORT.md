@@ -4,7 +4,7 @@
 **Vercel URL**：https://yearn-paper-next.vercel.app/  
 **GitHub Repo**：私有倉庫（cybermindflows/yearn-paper-next）  
 **最後更新**：2026-05-31  
-**最新 Commit**：`a401cff`（Phase 1 緊急修復 — 線上作答按鈕狀態修正）
+**最新 Commit**：Phase 2 數學科知識圖譜（待部署）
 
 ---
 
@@ -367,15 +367,75 @@
 
 ---
 
+### Phase 2：數學科知識圖譜（2026-05-31）
+
+#### 修正要求（來自指令文件 Pasted_content_09.txt）
+- 建立小三數學科「去出版商化」知識圖譜（48 筆知識點，16 個知識點 × L1/L2/L3 三層）
+- 更新資料庫 Schema（ALTER TABLE knowledge_chunks 新增 10 個欄位）
+- 調整出卷流程 Step 1/2/3 支援數學科
+- 更新 DeepSeek System Prompt（數學科專用）
+
+#### ✅ 成功
+1. **資料庫 Schema 更新**（`/src/app/api/setup/math-migration/route.ts`）：
+   - `ALTER TABLE knowledge_chunks` 新增欄位：`category`、`subcategory`、`difficulty_params`、`prerequisites`、`sample_question_l1/l2/l3`、`sample_answer_l1/l2/l3`
+   - Migration API 端點：`GET /api/setup/math-migration?secret=yearn-setup-2026`
+2. **48 筆數學科知識點**（16 個知識點 × L1/L2/L3）：
+   - 範疇一「數（Number）」：五位數、加法、減法、乘法、除法、分數、分數加法、分數減法（各 3 層 = 24 筆）
+   - 範疇二「度量（Measures）」：長度、重量、容量、時間、貨幣（各 3 層 = 15 筆）
+   - 範疇三「圖形與空間（Shape and Space）」：周界、平面圖形、方向和位置（各 3 層 = 9 筆）
+   - 所有知識點均包含 L1/L2/L3 樣本題目及答案
+   - 知識點 ID 格式：`M3_01_L1`（M=數學, 3=小三, 01=知識點序號, L1=層級）
+3. **Step 1 前端更新**（`/src/app/create/step1/page.tsx`）：
+   - 數學科從 `available: false` 改為 `available: true`
+   - 說明文字更新：「小三常識科及數學科已開放，其他科目即將推出」
+4. **Step 2 前端更新**（`/src/app/create/step2/page.tsx`）：
+   - 數學科顯示三個範疇分組（數、度量、圖形與空間），可摺疊展開
+   - 難度層級篩選器（L1 基礎/L2 標準/L3 挑戰，可多選，至少保留一個）
+   - 每個範疇可全選/清除，知識點顯示層級標籤（綠/橙/紅）
+   - 常識科維持原有平面列表顯示
+5. **Step 3 前端更新**（`/src/app/create/step3/page.tsx`）：
+   - 讀取 `step1.subject` 並映射到正確的科目名稱和主題
+   - 數學科：`{ name: '數學科', topic: '小三數學', unit: '網路知識圖譜' }`
+6. **Knowledge API 更新**（`/src/app/api/knowledge/route.ts`）：
+   - 常識科：繼續使用靜態 `KNOWLEDGE_BASE`
+   - 數學科：從 Supabase `knowledge_chunks` 表讀取
+7. **Generate Route 更新**（`/src/app/api/papers/[id]/generate/route.ts`）：
+   - 數學科：從 Supabase 讀取知識點（支援按 ID 篩選）
+   - 常識科：繼續使用靜態 `KNOWLEDGE_BASE`
+8. **DeepSeek Prompt 更新**（`/src/lib/mockLLM.ts`）：
+   - 新增 `buildMathSystemPrompt()` 函數（數學科專用）
+   - `buildSystemPrompt()` 根據 `subject === '數學科'` 選擇不同 Prompt
+   - 數學科 Prompt 特點：
+     - 難度描述按 L1/L2/L3 分別說明（直接計算/含進位退位/多步驟應用題）
+     - 要求所有數字經過驗算
+     - 選擇題不得出現「以上皆是/皆非」選項
+     - 填充題答案必須是具體數字或單位
+     - 問答題必須包含完整計算步驟
+     - JSON 輸出包含 `level` 和 `knowledge_point_id` 欄位
+
+#### ⚠️ 偏離原指令的操作
+1. **Migration 方式**：原指令未指定 Migration 執行方式。由於本地 `.env.local` 使用 placeholder 憑證，無法在沙盒直接執行 SQL。改為建立 API 端點 `/api/setup/math-migration`，部署後在 Vercel 環境中執行（使用真實 Supabase 憑證）。
+   - **執行指示**：部署後訪問 `https://yearn-paper-next.vercel.app/api/setup/math-migration?secret=yearn-setup-2026`
+2. **TypeScript 類型修正**：`generate/route.ts` 中從 Supabase 讀取的數學科知識點需映射至 `KnowledgeChunk` 接口，需加入 `source` 欄位（原接口必填）。
+
+#### 部署記錄
+
+| 部署次序 | Commit | 內容 | 狀態 |
+|----------|--------|------|------|
+| 第十一次 | 待 commit | Phase 2 數學科知識圖譜 | 待部署 |
+
+---
+
 ## 六、待辦事項（未來 Phase）
 
 | 優先級 | 功能 | 說明 |
 |--------|------|------|
+| 高 | 執行 Math Migration | 部署後訪問 `/api/setup/math-migration?secret=yearn-setup-2026` 匯入 48 筆知識點 |
 | 高 | 診斷模式 | 自動分析弱項，生成針對性練習 |
 | 高 | 模擬考試模式 | 計時、全卷、正式評分 |
 | ~~中~~ | ~~真實 AI 出題~~ | ~~切換 `USE_MOCK_LLM=false` + OpenAI API Key~~ **→ 已完成（Phase 1 修正三，DeepSeek）** |
 | 中 | 孩子個人成績追蹤 | 按孩子篩選成績，顯示進步趨勢 |
-| 中 | 知識點擴充 | 增加更多科目和年級的知識點 |
+| ~~中~~ | ~~知識點擴充~~ | **→ 已完成（Phase 2，數學科 48 筆知識點）** |
 | 低 | 電郵通知 | 出卷完成後發送 PDF 至家長電郵 |
 | 低 | 多語言支援 | 英文介面 |
 

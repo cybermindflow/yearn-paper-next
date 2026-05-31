@@ -42,23 +42,32 @@ export default function Step3Page() {
   const handleGenerate = async () => {
     if (selectedTypes.length === 0) { toast.error('請至少選擇一種題型'); return }
 
-    // step1 data not needed here (used in step2)
     const step2 = JSON.parse(sessionStorage.getItem('yp_step2') || '{}')
 
     setLoading(true)
     try {
       // 1. Create paper
-      // Read mode from sessionStorage (set by dashboard mode card)
+      // Read mode and subject from sessionStorage (set by step1)
       const step1 = JSON.parse(sessionStorage.getItem('yp_step1') || '{}')
       const learningMode = step1.mode || 'practice'
+      const subjectId = step1.subject || 'gs'
+
+      // Map subject ID to display name and topic
+      const subjectMap: Record<string, { name: string; topic: string; unit: string }> = {
+        gs: { name: '常識科', topic: '生活多姿彩', unit: '單元一' },
+        ma: { name: '數學科', topic: '小三數學', unit: '網路知識圖譜' },
+        ch: { name: '中文科', topic: '小三中文', unit: '單元一' },
+        en: { name: '英文科', topic: 'Primary 3 English', unit: 'Unit 1' },
+      }
+      const subjectInfo = subjectMap[subjectId] || subjectMap.gs
 
       const paperRes = await fetch('/api/papers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          subject: '常識科',
-          topic: '生活多姿彩',
-          unit: '單元一',
+          subject: subjectInfo.name,
+          topic: subjectInfo.topic,
+          unit: subjectInfo.unit,
           questionTypes: selectedTypes,
           difficultyLevel: difficulty,
           pageCount,

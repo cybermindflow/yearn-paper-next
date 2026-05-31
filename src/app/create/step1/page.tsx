@@ -20,7 +20,7 @@ const SUBJECTS: Record<string, { id: string; label: string; available: boolean }
     { id: 'gs', label: '常識科', available: true },
     { id: 'ch', label: '中文科', available: false },
     { id: 'en', label: '英文科', available: false },
-    { id: 'ma', label: '數學科', available: false },
+    { id: 'ma', label: '數學科', available: true },
   ],
 }
 
@@ -91,7 +91,7 @@ function Step1Content() {
             <>
               <h2 className="text-xl font-bold mb-1" style={{ color: 'var(--brand-dark)' }}>選擇科目</h2>
               <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
-                目前僅開放常識科，其他科目即將推出
+                小三常識科及數學科已開放，其他科目即將推出
               </p>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {subjects.map(s => (

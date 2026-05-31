@@ -42,6 +42,77 @@ interface DeepSeekResponse {
 
 // ── DeepSeek API caller ───────────────────────────────────────────────────────
 
+function buildMathSystemPrompt(
+  grade: string,
+  questionTypes: string[],
+  difficulty: number,
+  totalQuestions: number,
+  knowledgeContent: string
+): string {
+  const typeLabels = questionTypes.map(t => QUESTION_TYPE_LABELS[t] || t).join('、')
+  const levelDesc = difficulty === 1
+    ? 'L1 基礎：直接計算，數字範圍小，單步驟推理'
+    : difficulty === 2
+    ? 'L2 標準：含進位/退位或單位換算，數字範圍中等'
+    : 'L3 挑戰：數字範圍大、需多步驟推理的應用題'
+
+  return `你是一位香港小學數學科教育專家。請根據以下提供的知識點內容，為香港小學${grade}數學科學生生成練習題。
+
+【嚴格要求】
+1. 只使用下方「知識庫內容」中提供的知識點來生成題目。
+2. 題目必須嚴格對齊香港教育局《小學數學科課程指引》的學習目標。
+3. 題型：${typeLabels}
+4. 難度：${levelDesc}
+5. 生成 ${totalQuestions} 道題目
+6. 使用繁體中文
+7. 題目內容必須貼近香港學生的日常生活情境（如買東西、乘車、學校生活）
+
+【數學題目要求】
+- 選擇題（mc）：4 個選項，必須包含具體數字答案，不得出現「以上皆是」或「以上皆非」選項
+- 填充題（fill）：答案必須是具體數字或單位，不得是模糊表述
+- 問答題（short）：必須包含完整的計算步驟
+- 判斷題（tf）：陳述必須清晰，答案為「對」或「錯」
+- 所有數字必須經過驗算，確保算術正確
+
+【輸出格式】
+請嚴格按照以下 JSON 格式輸出（只輸出 JSON，不要任何其他文字）：
+{
+  "questions": [
+    {
+      "type": "mc",
+      "level": "L1",
+      "knowledge_point_id": "M3_04_L1",
+      "question_text": "題目文字",
+      "options": ["A. 選項一", "B. 選項二", "C. 選項三", "D. 選項四"],
+      "correct_answer": "A",
+      "explanation": "計算步驟說明"
+    },
+    {
+      "type": "fill",
+      "level": "L2",
+      "knowledge_point_id": "M3_04_L2",
+      "question_text": "題目文字",
+      "correct_answer": "答案",
+      "explanation": "解釋"
+    }
+  ]
+}
+
+【知識庫內容】
+${knowledgeContent}
+
+【答案正確性要求】
+- 所有數字計算必須經過驗算，確保算術正確
+- 選擇題的正確答案必須包含在四個選項中
+- 同一份練習卷中，涉及同一知識點的題目答案必須一致，不得互相矛盾
+- 在生成所有題目後，請自行檢查所有計算是否正確
+
+【注意】
+- 只輸出 JSON，不要任何前缀或後綴
+- 選擇題的選項必須以 "A. "、"B. "、"C. "、"D. " 開頭
+- 每道題必須有 explanation，說明計算步驟`
+}
+
 function buildSystemPrompt(
   grade: string,
   subject: string,
@@ -50,6 +121,11 @@ function buildSystemPrompt(
   totalQuestions: number,
   knowledgeContent: string
 ): string {
+  // Use math-specific prompt for 數學科
+  if (subject === '數學科') {
+    return buildMathSystemPrompt(grade, questionTypes, difficulty, totalQuestions, knowledgeContent)
+  }
+
   const typeLabels = questionTypes.map(t => QUESTION_TYPE_LABELS[t] || t).join('、')
   return `你是一位香港小學教育專家。請根據以下提供的知識點內容，為香港小學${grade}${subject}學生生成練習題。
 
@@ -102,7 +178,7 @@ ${knowledgeContent}
 - 在生成所有題目後，請自行檢查是否有答案矛盾的情況，如有則修正。
 
 【注意】
-- 只輸出 JSON，不要任何前綴或後綴
+- 只輸出 JSON，不要任何前缀或後綴
 - 選擇題的選項必須以 "A. "、"B. "、"C. "、"D. " 開頭
 - 每道題必須有 explanation`
 }

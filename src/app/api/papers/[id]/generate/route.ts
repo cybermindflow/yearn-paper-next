@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSessionFromRequest } from '@/lib/session'
 import { supabaseAdmin } from '@/lib/supabase'
 import { generateQuestions } from '@/lib/mockLLM'
-import { KNOWLEDGE_BASE, getKnowledgeByIds } from '@/lib/knowledgeBase'
+import { KNOWLEDGE_BASE, getKnowledgeByIds, KnowledgeChunk } from '@/lib/knowledgeBase'
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getSessionFromRequest(req)
@@ -20,12 +20,57 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!paper) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   const body = await req.json()
-  const selectedKnowledgeIds: string[] = body.knowledgeIds || KNOWLEDGE_BASE.map(k => k.id)
-  const knowledgeChunks = getKnowledgeByIds(selectedKnowledgeIds)
+  const selectedKnowledgeIds: string[] = body.knowledgeIds || []
 
   // Determine total questions from page count
   const questionsPerPage = 3
   const totalQuestions = paper.page_count * questionsPerPage
+
+  let knowledgeChunks: KnowledgeChunk[]
+
+  // For 數學科: fetch from Supabase knowledge_chunks table
+  if (paper.subject === '數學科') {
+    let query = supabaseAdmin
+      .from('knowledge_chunks')
+      .select('id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, applicable_question_types, source')
+      .eq('subject', '數學科')
+
+    if (selectedKnowledgeIds.length > 0) {
+      query = query.in('id', selectedKnowledgeIds)
+    }
+
+    const { data: mathChunks, error: mathError } = await query.order('id')
+
+    if (mathError) {
+      console.error('[generate] Math knowledge fetch error:', mathError.message)
+      return NextResponse.json({ error: '無法讀取數學科知識點' }, { status: 500 })
+    }
+
+    if (!mathChunks || mathChunks.length === 0) {
+      return NextResponse.json({ error: '找不到數學科知識點，請先執行 Migration' }, { status: 400 })
+    }
+
+    // Map Supabase rows to KnowledgeChunk interface
+    knowledgeChunks = mathChunks.map(row => ({
+      id: row.id,
+      subject: row.subject,
+      year: row.year,
+      topic: row.topic || row.category || '數',
+      unit: row.unit || row.subcategory || '數（Number）',
+      knowledge_point: row.knowledge_point,
+      learning_objective: row.learning_objective,
+      level: row.level,
+      applicable_question_types: row.applicable_question_types || ['mc', 'fill'],
+      source: row.source || '香港教育局《小學數學科課程指引》',
+    }))
+  } else {
+    // For 常識科 and others: use static knowledge base
+    if (selectedKnowledgeIds.length > 0) {
+      knowledgeChunks = getKnowledgeByIds(selectedKnowledgeIds)
+    } else {
+      knowledgeChunks = KNOWLEDGE_BASE
+    }
+  }
 
   const generated = await generateQuestions({
     knowledgeChunks,
