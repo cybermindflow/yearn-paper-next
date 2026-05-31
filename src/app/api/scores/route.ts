@@ -6,6 +6,9 @@ export async function GET(req: NextRequest) {
   const session = await getSessionFromRequest(req)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  const { searchParams } = new URL(req.url)
+  const modeFilter = searchParams.get('mode') // optional: 'practice' | 'diagnosis' | 'exam'
+
   // Get all papers for this parent
   const { data: papers } = await supabaseAdmin
     .from('papers')
@@ -16,15 +19,21 @@ export async function GET(req: NextRequest) {
 
   const paperIds = papers.map(p => p.id)
 
-  const { data: scores } = await supabaseAdmin
+  let query = supabaseAdmin
     .from('scores')
     .select(`
       *,
-      papers(subject, topic, unit, mode, generated_at)
+      papers(subject, topic, unit, mode, delivery_mode, generated_at)
     `)
     .in('paper_id', paperIds)
     .order('completed_at', { ascending: false })
 
+  // Apply mode filter if provided
+  if (modeFilter && ['practice', 'diagnosis', 'exam'].includes(modeFilter)) {
+    query = query.eq('mode', modeFilter)
+  }
+
+  const { data: scores } = await query
   return NextResponse.json({ scores: scores || [] })
 }
 
@@ -55,6 +64,7 @@ export async function POST(req: NextRequest) {
       total_questions: totalQuestions,
       correct_count: correctCount,
       score_percentage: parseFloat(scorePercentage.toFixed(2)),
+      mode: paper.mode || 'practice',
     })
     .select()
     .single()

@@ -28,7 +28,11 @@ export async function POST(req: NextRequest) {
     }, { status: 403 })
   }
 
-  const { childId, subject, topic, unit, questionTypes, difficultyLevel, pageCount, mode } = await req.json()
+  const { childId, subject, topic, unit, questionTypes, difficultyLevel, pageCount, mode, deliveryMode } = await req.json()
+
+  // mode = learning mode: 'practice' | 'diagnosis' | 'exam' (required, defaults to 'practice')
+  // deliveryMode = delivery: 'online' | 'pdf' (optional, defaults to 'online')
+  const learningMode = (['practice', 'diagnosis', 'exam'].includes(mode)) ? mode : 'practice'
 
   const { data, error } = await supabaseAdmin
     .from('papers')
@@ -41,7 +45,8 @@ export async function POST(req: NextRequest) {
       question_types: questionTypes || ['mc'],
       difficulty_level: difficultyLevel || 1,
       page_count: pageCount || 2,
-      mode: mode || 'online',
+      mode: learningMode,
+      delivery_mode: deliveryMode || 'online',
       status: 'pending',
     })
     .select()

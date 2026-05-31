@@ -86,7 +86,7 @@ export default function DashboardPage() {
             </div>
 
             {/* 練習模式 - active */}
-            <Link href="/create/step1"
+            <Link href="/create/step1?mode=practice"
               className="card flex flex-col items-center text-center py-5 no-underline group transition-all hover:shadow-md hover:-translate-y-0.5"
               style={{ borderColor: 'var(--brand)', borderWidth: '2px' }}>
               <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3"
@@ -184,7 +184,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Quick action */}
-            <Link href="/create/step1" className="card flex items-center justify-between no-underline group hover:shadow-md transition-shadow"
+            <Link href="/create/step1?mode=practice" className="card flex items-center justify-between no-underline group hover:shadow-md transition-shadow"
               style={{ borderColor: 'var(--brand)', borderWidth: '1.5px' }}>
               <div>
                 <div className="font-bold text-sm mb-0.5" style={{ color: 'var(--brand-dark)' }}>開始出卷</div>
@@ -203,7 +203,7 @@ export default function DashboardPage() {
             <div className="card">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-bold text-base" style={{ color: 'var(--brand-dark)' }}>最近出卷記錄</h2>
-                <Link href="/create/step1" className="btn-ghost text-xs no-underline">
+                <Link href="/create/step1?mode=practice" className="btn-ghost text-xs no-underline">
                   <Plus size={14} /> 新增
                 </Link>
               </div>
@@ -211,7 +211,7 @@ export default function DashboardPage() {
                 <div className="text-center py-8">
                   <BookOpen size={32} className="mx-auto mb-2" style={{ color: 'var(--border)' }} />
                   <p className="text-sm mb-3" style={{ color: 'var(--text-muted)' }}>尚未出卷，立即開始！</p>
-                  <Link href="/create/step1" className="btn-primary text-sm no-underline">立即出卷</Link>
+                  <Link href="/create/step1?mode=practice" className="btn-primary text-sm no-underline">立即出卷</Link>
                 </div>
               ) : (
                 <div className="flex flex-col gap-2">
@@ -225,7 +225,7 @@ export default function DashboardPage() {
                         </div>
                         <div className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
                           {new Date(p.generated_at).toLocaleDateString('zh-HK')} ·
-                          {p.mode === 'online' ? ' 線上作答' : ' PDF 下載'}
+                          {p.mode === 'practice' ? ' 練習模式' : p.mode === 'diagnosis' ? ' 診斷模式' : p.mode === 'exam' ? ' 模擬考試' : ' 練習模式'}
                         </div>
                       </div>
                       <span className={`badge ${

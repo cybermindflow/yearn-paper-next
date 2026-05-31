@@ -66,7 +66,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pap
   const totalObjective = objectiveQuestions.length
   const scorePercentage = totalObjective > 0 ? (correctCount / totalObjective) * 100 : 0
 
-  // Save score
+  // Save score (include mode from paper for filtering)
   const { data: score } = await supabaseAdmin
     .from('scores')
     .insert({
@@ -76,6 +76,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pap
       correct_count: correctCount,
       score_percentage: parseFloat(scorePercentage.toFixed(2)),
       time_spent_seconds: timeSpentSeconds || null,
+      mode: paper.mode || 'practice',
     })
     .select()
     .single()

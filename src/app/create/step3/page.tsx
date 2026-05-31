@@ -28,7 +28,7 @@ export default function Step3Page() {
   const [selectedTypes, setSelectedTypes] = useState<string[]>(['mc', 'tf'])
   const [difficulty, setDifficulty] = useState(1)
   const [pageCount, setPageCount] = useState(2)
-  const [mode, setMode] = useState<'online' | 'pdf'>('online')
+  const [deliveryMode, setDeliveryMode] = useState<'online' | 'pdf'>('online')
   const [loading, setLoading] = useState(false)
 
   const toggleType = (id: string) => {
@@ -48,6 +48,10 @@ export default function Step3Page() {
     setLoading(true)
     try {
       // 1. Create paper
+      // Read mode from sessionStorage (set by dashboard mode card)
+      const step1 = JSON.parse(sessionStorage.getItem('yp_step1') || '{}')
+      const learningMode = step1.mode || 'practice'
+
       const paperRes = await fetch('/api/papers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -58,7 +62,8 @@ export default function Step3Page() {
           questionTypes: selectedTypes,
           difficultyLevel: difficulty,
           pageCount,
-          mode,
+          mode: learningMode,
+          deliveryMode,
         }),
       })
       const paperData = await paperRes.json()
@@ -168,12 +173,12 @@ export default function Step3Page() {
                 { val: 'online', label: '線上作答', desc: '即時批改，自動記錄成績' },
                 { val: 'pdf', label: 'PDF 下載', desc: '列印後手寫作答，手動輸入成績' },
               ].map(m => (
-                <button key={m.val} onClick={() => setMode(m.val as 'online' | 'pdf')}
+                <button key={m.val} onClick={() => setDeliveryMode(m.val as 'online' | 'pdf')}
                   className="flex-1 p-3 rounded-xl border-2 text-left transition-all"
-                  style={mode === m.val
+                  style={deliveryMode === m.val
                     ? { borderColor: 'var(--brand)', background: 'var(--brand-pale)' }
                     : { borderColor: 'var(--border)', background: '#fff' }}>
-                  <div className="font-semibold text-sm" style={{ color: mode === m.val ? 'var(--brand)' : 'var(--text)' }}>
+                  <div className="font-semibold text-sm" style={{ color: deliveryMode === m.val ? 'var(--brand)' : 'var(--text)' }}>
                     {m.label}
                   </div>
                   <div className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{m.desc}</div>

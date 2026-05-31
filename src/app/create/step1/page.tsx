@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import AppLayout from '@/components/AppLayout'
 import StepIndicator from '@/components/StepIndicator'
 import { Lock } from 'lucide-react'
@@ -32,15 +32,26 @@ const STEPS = [
 
 export default function Step1Page() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [selectedGrade, setSelectedGrade] = useState<string | null>(null)
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null)
+
+  // Read mode from URL param (set by dashboard mode card), default to 'practice'
+  const modeParam = searchParams.get('mode')
+  const learningMode = (['practice', 'diagnosis', 'exam'].includes(modeParam || '')) ? modeParam! : 'practice'
+
+  // Store mode in sessionStorage on mount so step3 can read it
+  useEffect(() => {
+    const existing = JSON.parse(sessionStorage.getItem('yp_step1') || '{}')
+    sessionStorage.setItem('yp_step1', JSON.stringify({ ...existing, mode: learningMode }))
+  }, [learningMode])
 
   const subjects = selectedGrade ? (SUBJECTS[selectedGrade] || []) : []
   const canNext = selectedGrade && selectedSubject
 
   const handleNext = () => {
     if (!canNext) return
-    sessionStorage.setItem('yp_step1', JSON.stringify({ grade: selectedGrade, subject: selectedSubject }))
+    sessionStorage.setItem('yp_step1', JSON.stringify({ grade: selectedGrade, subject: selectedSubject, mode: learningMode }))
     router.push('/create/step2')
   }
 
