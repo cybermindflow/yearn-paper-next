@@ -14,6 +14,7 @@ export interface GenerateParams {
   questionTypes: string[]
   totalQuestions: number
   difficulty: number
+  previousQuestions?: string[] // 最近 5 次針對練習中已出現過的題目文字，用於避免重複
 }
 
 const QUESTION_TYPE_LABELS: Record<string, string> = {
@@ -47,7 +48,8 @@ function buildMathSystemPrompt(
   questionTypes: string[],
   difficulty: number,
   totalQuestions: number,
-  knowledgeContent: string
+  knowledgeContent: string,
+  previousQuestions?: string[]
 ): string {
   const typeLabels = questionTypes.map(t => QUESTION_TYPE_LABELS[t] || t).join('、')
   const levelDesc = difficulty === 1
@@ -110,7 +112,11 @@ ${knowledgeContent}
 【注意】
 - 只輸出 JSON，不要任何前缀或後綴
 - 選擇題的選項必須以 "A. "、"B. "、"C. "、"D. " 開頭
-- 每道題必須有 explanation，說明計算步驟`
+- 每道題必須有 explanation，說明計算步驟${previousQuestions && previousQuestions.length > 0 ? `
+
+【避免重複題目】
+本次為針對練習。以下是該學生最近 5 次針對練習中已出現過的題目列表（僅供參考，避免生成完全相同的題目，但可出現相似知識點的不同題目）：
+${previousQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n')}` : ''}`
 }
 
 function buildSystemPrompt(
@@ -119,11 +125,12 @@ function buildSystemPrompt(
   questionTypes: string[],
   difficulty: number,
   totalQuestions: number,
-  knowledgeContent: string
+  knowledgeContent: string,
+  previousQuestions?: string[]
 ): string {
   // Use math-specific prompt for 數學科
   if (subject === '數學科') {
-    return buildMathSystemPrompt(grade, questionTypes, difficulty, totalQuestions, knowledgeContent)
+    return buildMathSystemPrompt(grade, questionTypes, difficulty, totalQuestions, knowledgeContent, previousQuestions)
   }
 
   const typeLabels = questionTypes.map(t => QUESTION_TYPE_LABELS[t] || t).join('、')
@@ -180,7 +187,11 @@ ${knowledgeContent}
 【注意】
 - 只輸出 JSON，不要任何前缀或後綴
 - 選擇題的選項必須以 "A. "、"B. "、"C. "、"D. " 開頭
-- 每道題必須有 explanation`
+- 每道題必須有 explanation${previousQuestions && previousQuestions.length > 0 ? `
+
+【避免重複題目】
+本次為針對練習。以下是該學生最近 5 次針對練習中已出現過的題目列表（僅供參考，避免生成完全相同的題目，但可出現相似知識點的不同題目）：
+${previousQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n')}` : ''}`
 }
 
 function buildUserPrompt(questionTypes: string[], totalQuestions: number): string {
@@ -350,7 +361,7 @@ async function generateWithDeepSeek(params: GenerateParams): Promise<GeneratedQu
   const grade = knowledgeChunks[0]?.year || 'P3'
   const subject = knowledgeChunks[0]?.subject || '常識科'
 
-  const systemPrompt = buildSystemPrompt(grade, subject, questionTypes, difficulty, totalQuestions, knowledgeContent)
+  const systemPrompt = buildSystemPrompt(grade, subject, questionTypes, difficulty, totalQuestions, knowledgeContent, params.previousQuestions)
   const userPrompt = buildUserPrompt(questionTypes, totalQuestions)
 
   let lastError = ''

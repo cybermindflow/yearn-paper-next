@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import AppLayout from '@/components/AppLayout'
-import { BarChart2, Loader2, ArrowLeft } from 'lucide-react'
+import { BarChart2, Loader2, ArrowLeft, ChevronRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 interface Score {
@@ -96,9 +96,17 @@ export default function ScoresPage() {
                       {new Date(s.completed_at).toLocaleDateString('zh-HK')}
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold" style={{ color: gradeColor }}>{pct}%</div>
-                    <span className="text-xs font-semibold" style={{ color: gradeColor }}>{gradeLabel}</span>
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <div className="text-2xl font-bold" style={{ color: gradeColor }}>{pct}%</div>
+                      <span className="text-xs font-semibold" style={{ color: gradeColor }}>{gradeLabel}</span>
+                    </div>
+                    <button
+                      onClick={() => router.push(`/scores/${s.id}`)}
+                      className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg"
+                      style={{ background: 'var(--brand-pale)', color: 'var(--brand)' }}>
+                      查看詳情 <ChevronRight size={12} />
+                    </button>
                   </div>
                 </div>
               )

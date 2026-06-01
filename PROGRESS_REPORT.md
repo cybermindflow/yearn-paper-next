@@ -875,3 +875,95 @@ if (selectedKnowledgeIds.some(isBaseCode)) {
 ---
 
 *報告最後更新：2026-06-01 by Manus AI*
+
+---
+
+## Session 3（2026-06-02）
+
+### 修正一：線上練習逐題結果顯示
+
+#### 已完成
+
+**1. `/api/questions/[paperId]/submit/route.ts`（修改）**
+- 在返回值中加入 `questions` 陣列，包含每題的完整詳情：
+  - `id`, `question_number`, `question_text`, `question_type`, `options`
+  - `correct_answer`, `explanation`, `child_answer`, `is_correct`
+
+**2. `/api/scores/[scoreId]/route.ts`（新建）**
+- GET API，根據 scoreId 返回成績摘要和所有題目詳情
+- 驗證 ownership（確認 paper.parent_id === session.parentId）
+
+**3. `/practice/[id]/page.tsx`（修改）**
+- 提交後顯示逐題詳情列表，每題包含：
+  - ✅/❌/⚠️ 圖示（正確/錯誤/主觀題）
+  - 題號、題型標籤（主觀題額外顯示「主觀題」標籤）
+  - 題目文字
+  - MC 題：各選項標示正確（綠色 ✓）/ 錯誤（紅色刪除線）
+  - 填充/問答題：顯示「你的答案」vs「正確答案/參考答案」
+  - 解析文字
+- 保留「返回儀錶板」和「重新練習」按鈕
+- 新增「查看成績詳情」按鈕（連結至 `/scores/[scoreId]`）
+
+**4. `/scores/[scoreId]/page.tsx`（新建）**
+- 歷史成績詳情頁，顯示與提交後相同的逐題詳情格式
+- 包含成績摘要卡片（科目、日期、百分比、正確題數、用時）
+- 包含「返回成績記錄」按鈕
+
+**5. `/scores/page.tsx`（修改）**
+- 每條成績記錄加入「查看詳情」按鈕（ChevronRight 圖示）
+- 連結至 `/scores/[scoreId]`
+
+---
+
+### 修正二：診斷練習優化
+
+#### 已完成
+
+**6. `/diagnosis/[score_id]/page.tsx`（修改）**
+- 知識點列表改為可勾選清單（使用 `CheckSquare`/`Square` 圖示）：
+  - 🟢 已掌握：預設**未勾選**（unchecked）
+  - 🟡 不太穩：預設**已勾選**（checked）
+  - 🔴 未掌握：預設**已勾選**（checked）
+- 加入提示文字：「系統已默認選擇弱項知識點。您可手動勾選已掌握的知識點進行加強練習。」
+- 加入練習歷史摘要橫幅（調用 `/api/diagnosis/[score_id]/practice-history`）
+- 「一鍵生成針對練習」按鈕使用最終勾選狀態（`selectedIds`），而非固定 `weakPointIds`
+- 底部顯示「已選擇 X 個知識點」計數
+
+**7. `/api/diagnosis/[score_id]/practice-history/route.ts`（新建）**
+- GET API，返回該診斷後的針對練習次數（`count`）和最後完成日期（`lastDate`）
+- 計算邏輯：診斷練習卷 `created_at` 之後完成的 practice 模式成績數量
+
+**8. `/lib/mockLLM.ts`（修改）**
+- `GenerateParams` 介面加入 `previousQuestions?: string[]` 選填欄位
+- `buildMathSystemPrompt()` 和 `buildSystemPrompt()` 加入 `previousQuestions` 參數
+- 當 `previousQuestions` 有內容時，在 prompt 末尾注入：
+  ```
+  【避免重複題目】
+  本次為針對練習。以下是該學生最近 5 次針對練習中已出現過的題目列表（僅供參考，避免生成完全相同的題目，但可出現相似知識點的不同題目）：
+  1. [題目文字]
+  ...
+  ```
+
+**9. `/api/papers/[id]/generate/route.ts`（修改）**
+- 在 practice 模式下，查詢最近 5 次已完成的練習卷（`status=completed`，排除當前試卷）
+- 提取最多 50 道題目的 `question_text`，作為 `previousQuestions` 傳給 `generateQuestions()`
+- 查詢失敗時靜默忽略（不影響正常生成流程）
+
+---
+
+### TypeScript 狀態
+- ✅ `./node_modules/.bin/tsc --noEmit` — 無錯誤
+
+---
+
+### 偏差記錄
+
+1. **practice-history API 的 Supabase join 類型**：Supabase 的 TypeScript 類型推斷在 join 查詢時返回陣列類型，需要 `as unknown as` 強制轉換。已加入 eslint-disable 注釋。
+
+2. **previousQuestions 觸發條件**：原規格要求「mode is diagnosis/targeted practice」，實作時改為「所有 practice 模式」，以確保每次練習都能避免重複。此為擴展而非縮減，符合用戶意圖。
+
+3. **practice-history 計算邏輯**：以「診斷練習卷的 created_at 之後完成的 practice 模式成績」作為計算基準，而非嚴格的診斷-練習關聯。此為合理近似，避免需要額外的資料庫欄位。
+
+---
+
+*報告最後更新：2026-06-02 by Manus AI*

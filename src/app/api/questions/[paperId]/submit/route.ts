@@ -95,6 +95,21 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pap
       .eq('id', paperId),
   ])
 
+  // Build detailed question results for the result page
+  const questionDetails = questions
+    .sort((a, b) => a.question_number - b.question_number)
+    .map(q => ({
+      id: q.id,
+      question_number: q.question_number,
+      question_text: q.question_text,
+      question_type: q.question_type,
+      options: q.options,
+      correct_answer: q.correct_answer,
+      explanation: q.explanation,
+      child_answer: answers[q.id] ?? null,
+      is_correct: updates.find(u => u.id === q.id)?.is_correct ?? null,
+    }))
+
   return NextResponse.json({
     success: true,
     score: {
@@ -103,5 +118,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pap
       scorePercentage: parseFloat(scorePercentage.toFixed(2)),
       scoreId: scoreResult.data?.id,
     },
+    questions: questionDetails,
   })
 }

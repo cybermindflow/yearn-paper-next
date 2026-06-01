@@ -3,12 +3,24 @@
 import { Suspense, useEffect, useState, useRef } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
-import { ChevronLeft, ChevronRight, Clock, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Clock, CheckCircle, AlertCircle, Loader2, XCircle } from 'lucide-react'
 
 interface Question {
   id: string; question_number: number; question_text: string
   question_type: string; options: Record<string, string> | null
   correct_answer: string; explanation: string
+}
+
+interface QuestionResult {
+  id: string
+  question_number: number
+  question_text: string
+  question_type: string
+  options: Record<string, string> | null
+  correct_answer: string
+  explanation: string
+  child_answer: string | null
+  is_correct: boolean | null
 }
 
 const OBJECTIVE_TYPES = ['mc', 'tf', 'fill', 'match', 'classify']
@@ -30,6 +42,7 @@ function PracticeContent() {
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [result, setResult] = useState<{ totalQuestions: number; correctCount: number; scorePercentage: number; scoreId?: string } | null>(null)
+  const [resultQuestions, setResultQuestions] = useState<QuestionResult[]>([])
   const [elapsed, setElapsed] = useState(0)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -77,6 +90,7 @@ function PracticeContent() {
       }
 
       setResult(data.score)
+      setResultQuestions(data.questions || [])
       setSubmitted(true)
     } catch {
       toast.error('提交失敗，請稍後再試')
@@ -99,14 +113,18 @@ function PracticeContent() {
     const grade = pct >= 80 ? '優秀' : pct >= 60 ? '良好' : '繼續努力'
     const gradeColor = pct >= 80 ? 'var(--brand)' : pct >= 60 ? 'var(--warning)' : 'var(--danger)'
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12 fade-in"
+      <div className="min-h-screen flex flex-col items-center px-4 py-8 fade-in"
         style={{ background: 'var(--surface)' }}>
-        <div className="w-full max-w-sm mb-4 p-3 rounded-xl border-l-4 border-orange-400 bg-yellow-50">
+
+        {/* AI disclaimer */}
+        <div className="w-full max-w-2xl mb-4 p-3 rounded-xl border-l-4 border-orange-400 bg-yellow-50">
           <p className="text-xs text-yellow-800">
             <span className="font-bold">⚠️ </span>本練習卷由 AI 生成，評分結果僅供參考。建議家長核對主觀題的答案，並根據實際情況給予指導。
           </p>
         </div>
-        <div className="card w-full max-w-sm text-center">
+
+        {/* Score summary */}
+        <div className="card w-full max-w-2xl text-center mb-6">
           <CheckCircle size={48} className="mx-auto mb-3" style={{ color: 'var(--brand)' }} />
           <h1 className="text-2xl font-bold mb-1" style={{ color: 'var(--brand-dark)' }}>作答完成！</h1>
           <div className="text-5xl font-bold my-4" style={{ color: gradeColor }}>{pct}%</div>
@@ -114,14 +132,131 @@ function PracticeContent() {
           <div className="text-sm mb-2" style={{ color: 'var(--text-muted)' }}>
             {result.correctCount} / {result.totalQuestions} 題正確
           </div>
-          <div className="text-sm mb-6" style={{ color: 'var(--text-muted)' }}>
+          <div className="text-sm mb-2" style={{ color: 'var(--text-muted)' }}>
             用時：{formatTime(elapsed)}
           </div>
+        </div>
+
+        {/* Per-question breakdown */}
+        {resultQuestions.length > 0 && (
+          <div className="w-full max-w-2xl mb-6">
+            <h2 className="text-base font-bold mb-3" style={{ color: 'var(--brand-dark)' }}>逐題詳情</h2>
+            <div className="flex flex-col gap-3">
+              {resultQuestions.map((rq) => {
+                const isSubjective = !OBJECTIVE_TYPES.includes(rq.question_type)
+                const correct = rq.is_correct === true
+                const wrong = rq.is_correct === false
+                const borderColor = isSubjective ? 'var(--border)' : correct ? '#22c55e' : '#ef4444'
+                const bgColor = isSubjective ? '#f9fafb' : correct ? '#f0fdf4' : '#fef2f2'
+                return (
+                  <div key={rq.id} className="rounded-xl border-l-4 p-4"
+                    style={{ borderColor, background: bgColor }}>
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 mt-0.5">
+                        {isSubjective ? (
+                          <AlertCircle size={20} style={{ color: 'var(--warning)' }} />
+                        ) : correct ? (
+                          <CheckCircle size={20} style={{ color: '#22c55e' }} />
+                        ) : (
+                          <XCircle size={20} style={{ color: '#ef4444' }} />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
+                            第 {rq.question_number} 題
+                          </span>
+                          <span className="text-xs px-1.5 py-0.5 rounded"
+                            style={{ background: 'var(--brand-pale)', color: 'var(--brand)' }}>
+                            {TYPE_LABELS[rq.question_type] || rq.question_type}
+                          </span>
+                          {isSubjective && (
+                            <span className="text-xs px-1.5 py-0.5 rounded"
+                              style={{ background: '#fff8e1', color: '#7a5c00' }}>
+                              主觀題
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm font-medium mb-2" style={{ color: 'var(--text)' }}>
+                          {rq.question_text}
+                        </p>
+                        {/* Options (for MC) */}
+                        {rq.options && Object.keys(rq.options).filter(k => k.length === 1).length > 0 && (
+                          <div className="flex flex-col gap-1 mb-2">
+                            {Object.entries(rq.options).filter(([k]) => k.length === 1).map(([key, val]) => {
+                              const isUserAnswer = rq.child_answer === key
+                              const isCorrectOption = rq.correct_answer === key
+                              let optStyle: React.CSSProperties = { color: 'var(--text-muted)' }
+                              if (isCorrectOption) optStyle = { color: '#16a34a', fontWeight: 600 }
+                              else if (isUserAnswer && !isCorrectOption) optStyle = { color: '#dc2626', textDecoration: 'line-through' }
+                              return (
+                                <div key={key} className="flex items-center gap-2 text-xs" style={optStyle}>
+                                  <span className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                                    style={isCorrectOption
+                                      ? { background: '#22c55e', color: '#fff' }
+                                      : isUserAnswer
+                                      ? { background: '#ef4444', color: '#fff' }
+                                      : { background: '#e5e7eb', color: '#6b7280' }}>
+                                    {key}
+                                  </span>
+                                  {val}
+                                  {isCorrectOption && <span className="ml-1">✓ 正確答案</span>}
+                                  {isUserAnswer && !isCorrectOption && <span className="ml-1">← 你的答案</span>}
+                                </div>
+                              )
+                            })}
+                          </div>
+                        )}
+                        {/* Fill / Short answer */}
+                        {!rq.options && (
+                          <div className="flex flex-col gap-1 mb-2 text-xs">
+                            <div style={{ color: rq.is_correct ? '#16a34a' : '#dc2626' }}>
+                              你的答案：{rq.child_answer ?? '（未作答）'}
+                            </div>
+                            {!isSubjective && (
+                              <div style={{ color: '#16a34a', fontWeight: 600 }}>
+                                正確答案：{rq.correct_answer}
+                              </div>
+                            )}
+                            {isSubjective && (
+                              <div style={{ color: '#7a5c00' }}>
+                                參考答案：{rq.correct_answer}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        {/* Explanation */}
+                        {rq.explanation && (
+                          <div className="mt-2 p-2 rounded-lg text-xs leading-relaxed"
+                            style={{ background: 'rgba(0,0,0,0.04)', color: 'var(--text-muted)' }}>
+                            <span className="font-semibold">解析：</span>{rq.explanation}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Action buttons */}
+        <div className="w-full max-w-2xl flex flex-col gap-3 mb-6">
           <button onClick={() => router.push('/dashboard')} className="btn-primary w-full">
             返回儀錶板
           </button>
+          <button onClick={() => router.push(`/practice/${id}`)} className="btn-secondary w-full">
+            重新練習
+          </button>
+          {result.scoreId && (
+            <button onClick={() => router.push(`/scores/${result.scoreId}`)} className="btn-secondary w-full">
+              查看成績詳情
+            </button>
+          )}
         </div>
-        <p className="disclaimer mt-4 max-w-sm text-center">
+
+        <p className="disclaimer max-w-2xl text-center">
           免責聲明：本練習卷由殷學社教育中心 AI 系統自動生成，僅供學習參考之用。
         </p>
       </div>

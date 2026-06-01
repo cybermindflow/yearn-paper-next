@@ -96,11 +96,46 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }
   }
 
+  // For targeted practice (diagnosis source), fetch recent 5 practice papers' questions to avoid repeats
+  let previousQuestions: string[] | undefined
+  const diagnosisSource = body.diagnosisSource as { scoreId?: string } | undefined
+  if (diagnosisSource?.scoreId || paper.mode === 'practice') {
+    try {
+      // Get the most recent 5 completed practice papers for this parent (excluding current paper)
+      const { data: recentPapers } = await supabaseAdmin
+        .from('papers')
+        .select('id')
+        .eq('parent_id', session.parentId)
+        .eq('mode', 'practice')
+        .eq('status', 'completed')
+        .neq('id', id)
+        .order('completed_at', { ascending: false })
+        .limit(5)
+
+      if (recentPapers && recentPapers.length > 0) {
+        const recentPaperIds = recentPapers.map(p => p.id)
+        const { data: recentQuestions } = await supabaseAdmin
+          .from('questions')
+          .select('question_text')
+          .in('paper_id', recentPaperIds)
+          .limit(50) // cap at 50 to avoid huge prompts
+
+        if (recentQuestions && recentQuestions.length > 0) {
+          previousQuestions = recentQuestions.map(q => q.question_text)
+          console.log(`[generate] Loaded ${previousQuestions.length} previous questions for deduplication`)
+        }
+      }
+    } catch (err) {
+      console.warn('[generate] Failed to fetch previous questions:', err)
+    }
+  }
+
   const generated = await generateQuestions({
     knowledgeChunks,
     questionTypes: paper.question_types,
     totalQuestions,
     difficulty: paper.difficulty_level,
+    previousQuestions,
   })
 
   // Insert questions

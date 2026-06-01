@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import AppLayout from '@/components/AppLayout'
-import { Stethoscope, ChevronRight, Loader2, BarChart2, ArrowLeft, Zap } from 'lucide-react'
+import { Stethoscope, ChevronRight, Loader2, BarChart2, ArrowLeft, Zap, CheckSquare, Square } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface KnowledgePointResult {
@@ -84,6 +84,10 @@ export default function DiagnosisReportPage() {
   const [report, setReport] = useState<DiagnosisReport | null>(null)
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
+  // Checklist state: knowledgePointId -> boolean (checked = include in practice)
+  const [checkedIds, setCheckedIds] = useState<Record<string, boolean>>({})
+  // Practice history summary
+  const [practiceHistory, setPracticeHistory] = useState<{ count: number; lastDate: string | null }>({ count: 0, lastDate: null })
 
   useEffect(() => {
     fetch(`/api/diagnosis/${score_id}`)
@@ -94,6 +98,12 @@ export default function DiagnosisReportPage() {
           router.replace('/dashboard')
         } else {
           setReport(data)
+          // Default: check unstable + weak, uncheck mastered
+          const initialChecked: Record<string, boolean> = {}
+          for (const kp of data.knowledgePointResults as KnowledgePointResult[]) {
+            initialChecked[kp.knowledgePointId] = kp.mastery === 'unstable' || kp.mastery === 'weak'
+          }
+          setCheckedIds(initialChecked)
         }
       })
       .catch(() => {
@@ -101,23 +111,40 @@ export default function DiagnosisReportPage() {
         router.replace('/dashboard')
       })
       .finally(() => setLoading(false))
+
+    // Fetch practice history for this diagnosis source
+    fetch(`/api/diagnosis/${score_id}/practice-history`)
+      .then(r => r.json())
+      .then(d => {
+        if (!d.error) {
+          setPracticeHistory({ count: d.count || 0, lastDate: d.lastDate || null })
+        }
+      })
+      .catch(() => {/* ignore */})
   }, [score_id, router])
 
+  const toggleCheck = (kpId: string) => {
+    setCheckedIds(prev => ({ ...prev, [kpId]: !prev[kpId] }))
+  }
+
+  const selectedIds = Object.entries(checkedIds)
+    .filter(([, checked]) => checked)
+    .map(([id]) => id)
+
   const handleGeneratePractice = async () => {
-    if (!report || report.weakPointIds.length === 0) {
-      toast.info('恭喜！所有知識點均已掌握，無需針對練習。')
+    if (selectedIds.length === 0) {
+      toast.info('請至少選擇一個知識點進行針對練習。')
       return
     }
     setGenerating(true)
     try {
-      // Store diagnosis source in sessionStorage for Step 3 to read
-      const subjectId = report.paper.subject === '數學科' ? 'ma' : 'gs'
+      const subjectId = report!.paper.subject === '數學科' ? 'ma' : 'gs'
       sessionStorage.setItem('yp_step1', JSON.stringify({ grade: 'P3', subject: subjectId, mode: 'practice' }))
-      sessionStorage.setItem('yp_step2', JSON.stringify({ knowledgeIds: report.weakPointIds }))
+      sessionStorage.setItem('yp_step2', JSON.stringify({ knowledgeIds: selectedIds }))
       sessionStorage.setItem('yp_diagnosis_source', JSON.stringify({
         scoreId: score_id,
-        knowledgeIds: report.weakPointIds,
-        weakTopics: report.weakPointIds,
+        knowledgeIds: selectedIds,
+        weakTopics: selectedIds,
       }))
       router.push('/create/step3')
     } finally {
@@ -173,6 +200,18 @@ export default function DiagnosisReportPage() {
           </div>
         </div>
 
+        {/* Practice history summary */}
+        <div className="mb-4 px-4 py-2.5 rounded-xl flex items-center gap-2 text-xs"
+          style={{ background: 'var(--brand-pale)', color: 'var(--brand)' }}>
+          <BarChart2 size={14} />
+          <span>
+            {practiceHistory.lastDate
+              ? `上次診斷：${new Date(practiceHistory.lastDate).toLocaleDateString('zh-HK')}｜`
+              : ''}
+            針對練習已完成 {practiceHistory.count} 次
+          </span>
+        </div>
+
         {/* Overall score */}
         <div className="card mb-4 text-center">
           <div className="text-4xl font-bold mb-1"
@@ -211,12 +250,16 @@ export default function DiagnosisReportPage() {
           </div>
         </div>
 
-        {/* Detailed analysis by topic */}
+        {/* Knowledge point checklist */}
         <div className="card mb-4">
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-2 mb-2">
             <BarChart2 size={16} style={{ color: 'var(--brand)' }} />
-            <h2 className="font-semibold text-sm" style={{ color: 'var(--brand-dark)' }}>詳細分析</h2>
+            <h2 className="font-semibold text-sm" style={{ color: 'var(--brand-dark)' }}>選擇針對練習知識點</h2>
           </div>
+          <p className="text-xs mb-4 leading-relaxed"
+            style={{ color: 'var(--text-muted)' }}>
+            系統已默認選擇弱項知識點。您可手動勾選已掌握的知識點進行加強練習。
+          </p>
 
           {Object.entries(grouped).map(([topic, results]) => (
             <div key={topic} className="mb-4">
@@ -228,33 +271,53 @@ export default function DiagnosisReportPage() {
                 {results.map(r => {
                   const kp = KP_NAMES[r.knowledgePointId]
                   const colors = MASTERY_COLORS[r.mastery]
+                  const isChecked = !!checkedIds[r.knowledgePointId]
                   return (
-                    <div key={r.knowledgePointId}
-                      className="flex items-center justify-between px-3 py-2.5 rounded-xl"
-                      style={{ background: colors.bg, border: `1px solid ${colors.border}` }}>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium truncate" style={{ color: colors.text }}>
-                          {kp?.name || r.knowledgePointId}
+                    <button
+                      key={r.knowledgePointId}
+                      onClick={() => toggleCheck(r.knowledgePointId)}
+                      className="flex items-center justify-between px-3 py-2.5 rounded-xl text-left transition-all w-full"
+                      style={{
+                        background: isChecked ? colors.bg : '#f9fafb',
+                        border: `2px solid ${isChecked ? colors.border : '#e5e7eb'}`,
+                      }}>
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <div className="flex-shrink-0" style={{ color: isChecked ? colors.text : '#9ca3af' }}>
+                          {isChecked
+                            ? <CheckSquare size={18} />
+                            : <Square size={18} />}
                         </div>
-                        <div className="text-xs mt-0.5" style={{ color: colors.text, opacity: 0.8 }}>
-                          {r.correct}/{r.total} 題正確 · {r.accuracy}%
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium truncate"
+                            style={{ color: isChecked ? colors.text : 'var(--text-muted)' }}>
+                            {kp?.name || r.knowledgePointId}
+                          </div>
+                          <div className="text-xs mt-0.5"
+                            style={{ color: isChecked ? colors.text : '#9ca3af', opacity: 0.8 }}>
+                            {r.correct}/{r.total} 題正確 · {r.accuracy}%
+                          </div>
                         </div>
                       </div>
-                      <div className="ml-3 text-sm font-bold flex items-center gap-1"
-                        style={{ color: colors.text }}>
+                      <div className="ml-3 text-sm font-bold flex items-center gap-1 flex-shrink-0"
+                        style={{ color: isChecked ? colors.text : '#9ca3af' }}>
                         {r.masteryEmoji} {r.masteryLabel}
                       </div>
-                    </div>
+                    </button>
                   )
                 })}
               </div>
             </div>
           ))}
+
+          {/* Selection summary */}
+          <div className="mt-3 pt-3 border-t text-xs" style={{ borderColor: 'var(--border)', color: 'var(--text-muted)' }}>
+            已選擇 <span className="font-bold" style={{ color: 'var(--brand)' }}>{selectedIds.length}</span> 個知識點
+          </div>
         </div>
 
         {/* Action buttons */}
         <div className="flex flex-col gap-3">
-          {report.weakPointIds.length > 0 ? (
+          {selectedIds.length > 0 ? (
             <button
               onClick={handleGeneratePractice}
               disabled={generating}
@@ -262,7 +325,7 @@ export default function DiagnosisReportPage() {
               {generating
                 ? <Loader2 size={18} className="animate-spin" />
                 : <Zap size={18} />}
-              一鍵生成針對練習（{report.weakPointIds.length} 個弱項知識點）
+              一鍵生成針對練習（{selectedIds.length} 個知識點）
               <ChevronRight size={16} />
             </button>
           ) : (
