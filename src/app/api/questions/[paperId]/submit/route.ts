@@ -30,6 +30,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pap
 
   // Grade answers
   let correctCount = 0
+  const now = new Date().toISOString()
   const updates = questions.map(q => {
     const childAnswer = answers[q.id] ?? null
     const isObjective = ['mc', 'tf', 'fill', 'match', 'classify'].includes(q.question_type)
@@ -38,25 +39,26 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pap
     if (isObjective && childAnswer !== null) {
       isCorrect = childAnswer.trim().toUpperCase() === q.correct_answer.trim().toUpperCase()
       if (isCorrect) correctCount++
-    } else if (!isObjective) {
-      // Subjective: mark as null (needs manual review)
-      isCorrect = null
     }
+    // Subjective: isCorrect stays null (needs manual review)
 
     return {
       id: q.id,
+      paper_id: paperId,
       child_answer: childAnswer,
       is_correct: isCorrect,
-      answered_at: new Date().toISOString(),
+      answered_at: now,
     }
   })
 
-  // Batch update questions
-  for (const u of updates) {
-    await supabaseAdmin
-      .from('questions')
-      .update({ child_answer: u.child_answer, is_correct: u.is_correct, answered_at: u.answered_at })
-      .eq('id', u.id)
+  // Batch upsert all questions in ONE request (avoid Vercel timeout)
+  const { error: upsertError } = await supabaseAdmin
+    .from('questions')
+    .upsert(updates, { onConflict: 'id' })
+
+  if (upsertError) {
+    console.error('Upsert error:', upsertError)
+    return NextResponse.json({ error: 'Failed to save answers' }, { status: 500 })
   }
 
   // Count only objective questions for score
@@ -66,26 +68,26 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pap
   const totalObjective = objectiveQuestions.length
   const scorePercentage = totalObjective > 0 ? (correctCount / totalObjective) * 100 : 0
 
-  // Save score (include mode from paper for filtering)
-  const { data: score } = await supabaseAdmin
-    .from('scores')
-    .insert({
-      paper_id: paperId,
-      child_id: paper.child_id,
-      total_questions: questions.length,
-      correct_count: correctCount,
-      score_percentage: parseFloat(scorePercentage.toFixed(2)),
-      time_spent_seconds: timeSpentSeconds || null,
-      mode: paper.mode || 'practice',
-    })
-    .select()
-    .single()
-
-  // Update paper status
-  await supabaseAdmin
-    .from('papers')
-    .update({ status: 'completed', completed_at: new Date().toISOString() })
-    .eq('id', paperId)
+  // Save score and update paper status in parallel
+  const [scoreResult] = await Promise.all([
+    supabaseAdmin
+      .from('scores')
+      .insert({
+        paper_id: paperId,
+        child_id: paper.child_id,
+        total_questions: questions.length,
+        correct_count: correctCount,
+        score_percentage: parseFloat(scorePercentage.toFixed(2)),
+        time_spent_seconds: timeSpentSeconds || null,
+        mode: paper.mode || 'practice',
+      })
+      .select()
+      .single(),
+    supabaseAdmin
+      .from('papers')
+      .update({ status: 'completed', completed_at: now })
+      .eq('id', paperId),
+  ])
 
   return NextResponse.json({
     success: true,
@@ -93,7 +95,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pap
       totalQuestions: questions.length,
       correctCount,
       scorePercentage: parseFloat(scorePercentage.toFixed(2)),
-      scoreId: score?.id,
+      scoreId: scoreResult.data?.id,
     },
   })
 }
