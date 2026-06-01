@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { Suspense, useEffect, useState, useRef } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
 import { ChevronLeft, ChevronRight, Clock, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
@@ -17,7 +17,7 @@ const TYPE_LABELS: Record<string, string> = {
   match: '配對題', classify: '分類題', short: '問答題', essay: '問答題',
 }
 
-export default function PracticePage() {
+function PracticeContent() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -68,7 +68,7 @@ export default function PracticePage() {
         body: JSON.stringify({ answers, timeSpentSeconds: elapsed }),
       })
       const data = await res.json()
-      if (!res.ok) { toast.error(data.error); return }
+      if (!res.ok) { toast.error(data.error); setSubmitting(false); return }
 
       // If diagnosis mode, redirect to diagnosis report page
       if (isDiagnosis && data.score?.scoreId) {
@@ -101,7 +101,6 @@ export default function PracticePage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12 fade-in"
         style={{ background: 'var(--surface)' }}>
-        {/* Disclaimer above score */}
         <div className="w-full max-w-sm mb-4 p-3 rounded-xl border-l-4 border-orange-400 bg-yellow-50">
           <p className="text-xs text-yellow-800">
             <span className="font-bold">⚠️ </span>本練習卷由 AI 生成，評分結果僅供參考。建議家長核對主觀題的答案，並根據實際情況給予指導。
@@ -282,5 +281,17 @@ export default function PracticePage() {
         © 2026 殷學社教育中心 Yearn Hopes Education Centre. All rights reserved.
       </footer>
     </div>
+  )
+}
+
+export default function PracticePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--surface)' }}>
+        <Loader2 size={32} className="animate-spin" style={{ color: 'var(--brand)' }} />
+      </div>
+    }>
+      <PracticeContent />
+    </Suspense>
   )
 }
