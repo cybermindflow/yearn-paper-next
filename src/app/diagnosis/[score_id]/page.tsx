@@ -1,6 +1,6 @@
 'use client'
-import { useState, useEffect, use } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useParams } from 'next/navigation'
 import AppLayout from '@/components/AppLayout'
 import { Stethoscope, ChevronRight, Loader2, BarChart2, ArrowLeft, Zap } from 'lucide-react'
 import { toast } from 'sonner'
@@ -78,8 +78,8 @@ const MASTERY_COLORS = {
   weak: { bg: '#fee2e2', text: '#991b1b', border: '#fca5a5' },
 }
 
-export default function DiagnosisReportPage({ params }: { params: Promise<{ score_id: string }> }) {
-  const { score_id } = use(params)
+export default function DiagnosisReportPage() {
+  const { score_id } = useParams<{ score_id: string }>()
   const router = useRouter()
   const [report, setReport] = useState<DiagnosisReport | null>(null)
   const [loading, setLoading] = useState(true)
