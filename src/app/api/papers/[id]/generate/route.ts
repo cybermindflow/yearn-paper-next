@@ -32,7 +32,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (paper.subject === '數學科') {
     let query = supabaseAdmin
       .from('knowledge_chunks')
-      .select('id, subject, year, category, subcategory, topic, unit, knowledge_point, learning_objective, level, applicable_question_types, source')
+      .select('id, subject, year, topic, unit, knowledge_point, learning_objective, level, applicable_question_types, source')
       .eq('subject', '數學科')
 
     if (selectedKnowledgeIds.length > 0) {
@@ -55,8 +55,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       id: row.id,
       subject: row.subject,
       year: row.year,
-      topic: row.topic || row.category || '數',
-      unit: row.unit || row.subcategory || '數（Number）',
+      topic: row.topic || '數',
+      unit: row.unit || '數（Number）',
       knowledge_point: row.knowledge_point,
       learning_objective: row.learning_objective,
       level: row.level,
