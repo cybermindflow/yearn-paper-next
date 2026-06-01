@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
 import { ChevronLeft, ChevronRight, Clock, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
 
@@ -20,13 +20,16 @@ const TYPE_LABELS: Record<string, string> = {
 export default function PracticePage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const isDiagnosis = searchParams.get('mode') === 'diagnosis'
+
   const [questions, setQuestions] = useState<Question[]>([])
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [current, setCurrent] = useState(0)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
-  const [result, setResult] = useState<{ totalQuestions: number; correctCount: number; scorePercentage: number } | null>(null)
+  const [result, setResult] = useState<{ totalQuestions: number; correctCount: number; scorePercentage: number; scoreId?: string } | null>(null)
   const [elapsed, setElapsed] = useState(0)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -66,6 +69,13 @@ export default function PracticePage() {
       })
       const data = await res.json()
       if (!res.ok) { toast.error(data.error); return }
+
+      // If diagnosis mode, redirect to diagnosis report page
+      if (isDiagnosis && data.score?.scoreId) {
+        router.push(`/diagnosis/${data.score.scoreId}`)
+        return
+      }
+
       setResult(data.score)
       setSubmitted(true)
     } catch {
@@ -83,7 +93,7 @@ export default function PracticePage() {
     )
   }
 
-  // ── Result screen ─────────────────────────────────────────────────────────
+  // ── Result screen (non-diagnosis mode) ─────────────────────────────────────
   if (submitted && result) {
     const pct = Math.round(result.scorePercentage)
     const grade = pct >= 80 ? '優秀' : pct >= 60 ? '良好' : '繼續努力'
@@ -127,7 +137,7 @@ export default function PracticePage() {
     )
   }
 
-  const progress = ((current + 1) / questions.length) * 100
+  const progressPct = ((current + 1) / questions.length) * 100
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--surface)' }}>
@@ -138,6 +148,12 @@ export default function PracticePage() {
           <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold"
             style={{ background: 'var(--brand)' }}>殷</div>
           <span className="text-sm font-semibold" style={{ color: 'var(--brand-dark)' }}>殷學社教育中心</span>
+          {isDiagnosis && (
+            <span className="text-xs px-2 py-0.5 rounded-full ml-1"
+              style={{ background: 'var(--brand-pale)', color: 'var(--brand)' }}>
+              診斷模式
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-1.5 text-sm" style={{ color: 'var(--text-muted)' }}>
           <Clock size={14} />
@@ -147,7 +163,7 @@ export default function PracticePage() {
 
       {/* Progress bar */}
       <div className="h-1.5" style={{ background: 'var(--border)' }}>
-        <div className="h-full transition-all duration-300" style={{ width: `${progress}%`, background: 'var(--brand)' }} />
+        <div className="h-full transition-all duration-300" style={{ width: `${progressPct}%`, background: 'var(--brand)' }} />
       </div>
 
       <main className="flex-1 max-w-2xl mx-auto w-full px-4 py-6 fade-in">
@@ -225,7 +241,7 @@ export default function PracticePage() {
             <ChevronLeft size={16} /> 上一題
           </button>
 
-          <div className="flex gap-1">
+          <div className="flex gap-1 flex-wrap justify-center max-w-xs">
             {questions.map((_, i) => (
               <button key={i} onClick={() => setCurrent(i)}
                 className="w-7 h-7 rounded-full text-xs font-bold transition-all"

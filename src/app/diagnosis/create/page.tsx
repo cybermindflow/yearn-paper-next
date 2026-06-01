@@ -41,6 +41,7 @@ const MATH_KNOWLEDGE_POINTS = [
 ]
 
 const STORAGE_KEY_PREFIX = 'yp_diagnosis_selection_'
+const BATCH_SIZE = 3 // knowledge points per API call (to stay under Vercel 10s limit)
 
 interface KnowledgePoint {
   id: string
@@ -54,6 +55,7 @@ export default function DiagnosisCreatePage() {
   const [grade] = useState('P3')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [generating, setGenerating] = useState(false)
+  const [progress, setProgress] = useState<{ current: number; total: number; label: string } | null>(null)
 
   const knowledgePoints: KnowledgePoint[] = subject === 'ma' ? MATH_KNOWLEDGE_POINTS : CS_KNOWLEDGE_POINTS
   const storageKey = `${STORAGE_KEY_PREFIX}${grade}_${subject}`
@@ -106,30 +108,84 @@ export default function DiagnosisCreatePage() {
       return
     }
     setGenerating(true)
+    setProgress(null)
+
     try {
-      const res = await fetch('/api/diagnosis/generate', {
+      const subjectLabel = subject === 'ma' ? '數學科' : '常識科'
+      const selectedArray = Array.from(selectedIds)
+      const totalQuestions = selectedArray.length * 3
+
+      // Step 1: Create the paper record first
+      setProgress({ current: 0, total: totalQuestions, label: '建立診斷卷…' })
+
+      const createRes = await fetch('/api/diagnosis/create-paper', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          subject: subject === 'ma' ? '數學科' : '常識科',
+          subject: subjectLabel,
           grade,
-          knowledgePointIds: Array.from(selectedIds),
+          knowledgePointIds: selectedArray,
           deliveryMode: 'online',
         }),
       })
-      const data = await res.json()
-      if (!res.ok) {
-        toast.error(data.error || '生成診斷卷失敗')
+      const createData = await createRes.json()
+      if (!createRes.ok) {
+        toast.error(createData.error || '建立診斷卷失敗')
         return
       }
-      // Navigate to practice page (same as regular practice)
-      router.push(`/practice/${data.paperId}?mode=diagnosis`)
+      const paperId: string = createData.paperId
+
+      // Step 2: Generate questions in batches of BATCH_SIZE knowledge points
+      const batches: string[][] = []
+      for (let i = 0; i < selectedArray.length; i += BATCH_SIZE) {
+        batches.push(selectedArray.slice(i, i + BATCH_SIZE))
+      }
+
+      let questionsGenerated = 0
+      for (let batchIdx = 0; batchIdx < batches.length; batchIdx++) {
+        const batch = batches[batchIdx]
+        const batchLabel = `生成第 ${batchIdx + 1}/${batches.length} 批題目（${batch.length * 3} 題）…`
+        setProgress({ current: questionsGenerated, total: totalQuestions, label: batchLabel })
+
+        const batchRes = await fetch('/api/diagnosis/generate-batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            paperId,
+            subject: subjectLabel,
+            grade,
+            knowledgePointIds: batch,
+            batchIndex: batchIdx,
+            questionsPerPoint: 3,
+          }),
+        })
+        const batchData = await batchRes.json()
+        if (!batchRes.ok) {
+          toast.error(batchData.error || `第 ${batchIdx + 1} 批題目生成失敗`)
+          return
+        }
+        questionsGenerated += batchData.questionsAdded || batch.length * 3
+      }
+
+      // Step 3: Finalize paper status
+      setProgress({ current: totalQuestions, total: totalQuestions, label: '診斷卷生成完成！' })
+      await fetch('/api/diagnosis/finalize-paper', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paperId }),
+      })
+
+      // Navigate to practice page
+      router.push(`/practice/${paperId}?mode=diagnosis`)
     } catch {
       toast.error('網絡錯誤，請稍後再試')
     } finally {
       setGenerating(false)
+      setProgress(null)
     }
   }
+
+  const progressPct = progress ? Math.round((progress.current / progress.total) * 100) : 0
 
   return (
     <AppLayout>
@@ -235,6 +291,25 @@ export default function DiagnosisCreatePage() {
           <div className="mb-4 px-4 py-3 rounded-xl text-sm"
             style={{ background: 'var(--brand-pale)', color: 'var(--brand-dark)' }}>
             預計生成 <strong>{selectedIds.size * 3} 道題目</strong>（每個知識點 3 題，選擇題 + 判斷題）
+          </div>
+        )}
+
+        {/* Progress bar (shown during generation) */}
+        {generating && progress && (
+          <div className="mb-4 px-4 py-3 rounded-xl"
+            style={{ background: 'var(--brand-pale)' }}>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium" style={{ color: 'var(--brand-dark)' }}>
+                {progress.label}
+              </span>
+              <span className="text-xs" style={{ color: 'var(--brand)' }}>{progressPct}%</span>
+            </div>
+            <div className="h-2 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{ width: `${progressPct}%`, background: 'var(--brand)' }}
+              />
+            </div>
           </div>
         )}
 
