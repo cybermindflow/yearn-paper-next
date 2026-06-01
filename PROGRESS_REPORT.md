@@ -769,3 +769,109 @@ const score_id = params.score_id as string;
 ---
 
 *報告最後更新：2026-06-01 by Manus AI*
+
+---
+
+## 十、Phase 3 緊急修正：診斷模式→針對練習「無法讀取數學科知識點」（2026-06-01）
+
+### 問題描述
+
+從診斷報告頁（`/diagnosis/[score_id]`）點擊「一鍵生成針對練習」→ 跳轉至 Step 3 → 點擊「生成針對練習卷」時，出現 `{"error":"無法讀取數學科知識點"}` 錯誤（HTTP 500）。
+
+### 根本原因分析
+
+**資料流追蹤**：
+
+| 步驟 | 位置 | 資料 | 問題 |
+|------|------|------|------|
+| 1 | `generate-batch` API | 插入題目時存入 `knowledge_point_id: "M3_01"` | ✅ 正確（代碼格式） |
+| 2 | 診斷報告 API | 讀取 `questions.knowledge_point_id` → `weakPointIds: ["M3_01", ...]` | ✅ 正確 |
+| 3 | 診斷報告頁 | 存入 `sessionStorage.yp_diagnosis_source.knowledgeIds: ["M3_01", ...]` | ✅ 正確 |
+| 4 | Step 3 | 傳遞 `knowledgeIds: ["M3_01", ...]` 給 `generate` API | ✅ 正確 |
+| 5 | `generate` API | `.in('id', ["M3_01", ...])` 查詢 UUID 欄位 | ❌ **錯誤！** |
+
+**核心問題**：`generate` API 使用 `.in('id', selectedKnowledgeIds)` 查詢 `knowledge_chunks` 表，但：
+- `knowledge_chunks.id` 是 **UUID**（如 `c5ad8a81-be33-4346-868c-163ec6dbd009`）
+- 傳入的 `selectedKnowledgeIds` 是**知識點代碼**（如 `M3_01`）
+- UUID 查詢永遠找不到任何記錄 → 知識點陣列為空 → 返回「無法讀取數學科知識點」
+
+相比之下，`generate-batch` API 正確使用 `.in('unit', ["M3_01_L1", "M3_01_L2"])` 查詢（展開代碼為 unit 格式）。
+
+### 修復方案
+
+在 `generate` API（`/src/app/api/papers/[id]/generate/route.ts`）中，新增知識點代碼格式檢測邏輯：
+
+```typescript
+// 判斷是否為知識點基礎代碼（如 M3_01）而非 UUID
+const isBaseCode = (id: string) => /^M\d+_\d+$/.test(id);
+
+// 若傳入的是代碼格式，展開為 unit 格式（M3_01 → M3_01_L1, M3_01_L2）
+if (selectedKnowledgeIds.some(isBaseCode)) {
+  const unitPatterns = selectedKnowledgeIds.flatMap(id =>
+    isBaseCode(id) ? [`${id}_L1`, `${id}_L2`] : [id]
+  );
+  query = supabase.from('knowledge_chunks').select(...).in('unit', unitPatterns);
+} else {
+  query = supabase.from('knowledge_chunks').select(...).in('id', selectedKnowledgeIds);
+}
+```
+
+### 執行步驟與繞道記錄
+
+| 步驟 | 操作 | 結果 | 繞道說明 |
+|------|------|------|----------|
+| 1 | 追蹤資料流，確認 `weakPointIds` 格式為代碼（`M3_01`）而非 UUID | 成功定位 | — |
+| 2 | 確認 `knowledge_chunks.unit` 格式為 `M3_01_L1`（代碼 + 難度等級） | 成功確認 | — |
+| 3 | 修復 `generate/route.ts`：新增 `isBaseCode()` 函數，分支查詢邏輯 | 本地完成 | — |
+| 4 | TypeScript 編譯檢查 | 無錯誤 | — |
+| 5 | 提交（`f217d24`）並推送至 GitHub | 成功 | — |
+| 6 | 等待 Vercel 自動部署 | **失敗** | **繞道 L**：Vercel 未連接 GitHub，無自動部署 |
+| 7 | 嘗試通過 Vercel CLI 部署（搜尋 token） | **失敗** | **繞道 M**：找不到有效 Vercel token |
+| 8 | 用戶登入 Vercel，在 Settings → Tokens 建立新 token `manus-deploy-token` | 成功 | — |
+| 9 | `npx vercel --prod --yes --token <token>` 部署 | **READY** | — |
+| 10 | 端對端測試：診斷報告頁 → 一鍵生成針對練習 → Step 3 → 生成練習卷 | **全部通過** ✅ | — |
+
+### 繞道摘要（本次共 2 次）
+
+| 繞道 | 原因 | 解決方案 |
+|------|------|----------|
+| L：Vercel 無自動部署 | Vercel 專案未連接 GitHub（「Connect Git」按鈕仍顯示），GitHub push 不觸發自動部署 | 用戶登入 Vercel 建立 token，手動執行 `vercel deploy --prod` |
+| M：找不到 Vercel token | 之前部署使用的 token 未儲存於 sandbox，`~/.bash_history` 和環境變數均無記錄 | 用戶在 Vercel Settings → Tokens 建立新 token `manus-deploy-token`（有效期 7 天） |
+
+### 端對端測試驗收（2026-06-01）
+
+測試帳號：12345678 / 1234
+
+| 步驟 | 結果 |
+|------|------|
+| 診斷發起頁（`/diagnosis/create`）：全選 15 個知識點，點擊「開始診斷」 | ✅ 正常 |
+| 分批生成 45 道題目（進度條 0% → 100%，約 60 秒） | ✅ 正常 |
+| 自動跳轉練習頁（`/practice/[id]?mode=diagnosis`） | ✅ 正常 |
+| 點擊「提交作答」（未作答，0/45）→ 自動跳轉診斷報告頁 | ✅ 正常 |
+| 診斷報告頁：顯示 15 個未掌握知識點，各知識點正確識別 | ✅ 正常 |
+| 點擊「一鍵生成針對練習（15 個弱項知識點）」→ 跳轉 Step 3 | ✅ 正常 |
+| Step 3 顯示「針對性練習模式 - 根據診斷結果，已預選弱項知識點」標籤 | ✅ 正常 |
+| 點擊「生成針對練習卷 ✦」 | ✅ 成功生成 6 道題目（整數加法、貨幣、分數、乘法、時間、圖形） |
+| 跳轉試卷詳情頁（`/paper/[id]`）：顯示「數學科 · 網路知識圖譜 · 小三數學」 | ✅ 正常 |
+| 「開始線上作答」、「下載題目卷」、「下載答案卷」按鈕可見 | ✅ 正常 |
+
+### 最新 Commit
+
+- `f217d24`：fix: use unit-based lookup for diagnosis knowledge point codes in generate API
+- 已部署至 Vercel（`yearn-paper-next.vercel.app`）
+
+### 技術說明：知識點 ID 格式對照
+
+| 來源 | 格式 | 範例 |
+|------|------|------|
+| `knowledge_chunks.id` | UUID | `c5ad8a81-be33-4346-868c-163ec6dbd009` |
+| `knowledge_chunks.unit` | 代碼 + 難度等級 | `M3_01_L1`、`M3_01_L2` |
+| `questions.knowledge_point_id` | 知識點基礎代碼 | `M3_01` |
+| 練習模式 Step 2 傳入 | UUID（`knowledge_chunks.id`） | `c5ad8a81-...` |
+| 診斷模式傳入 | 知識點基礎代碼 | `M3_01` |
+
+`generate` API 現在同時支援兩種格式，通過 `isBaseCode()` 函數自動判斷並選擇正確的查詢方式。
+
+---
+
+*報告最後更新：2026-06-01 by Manus AI*
