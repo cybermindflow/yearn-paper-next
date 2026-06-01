@@ -4,6 +4,11 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { generateQuestions } from '@/lib/mockLLM'
 import { KNOWLEDGE_BASE, getKnowledgeByIds, KnowledgeChunk } from '@/lib/knowledgeBase'
 
+// Helper: detect if an ID is a knowledge point base code (e.g. "M3_01") vs UUID
+function isBaseCode(id: string): boolean {
+  return /^[A-Z]\d+_\d+$/.test(id)
+}
+
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getSessionFromRequest(req)
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -36,10 +41,26 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       .eq('subject', '數學科')
 
     if (selectedKnowledgeIds.length > 0) {
-      query = query.in('id', selectedKnowledgeIds)
+      // Check if IDs are base codes (e.g. "M3_01") or UUIDs
+      // Base codes come from diagnosis mode (weakPointIds); UUIDs come from Step 2 selection
+      const firstId = selectedKnowledgeIds[0]
+      if (isBaseCode(firstId)) {
+        // Diagnosis mode: IDs are base codes like "M3_01"
+        // knowledge_chunks.unit is like "M3_01_L1", "M3_01_L2", "M3_01_L3"
+        // Use unit prefix matching: expand each base code to L1+L2 variants
+        const unitPatterns = selectedKnowledgeIds.flatMap(code => [
+          `${code}_L1`,
+          `${code}_L2`,
+        ])
+        console.log('[generate] Diagnosis mode: querying by unit patterns:', unitPatterns.slice(0, 6), '...')
+        query = query.in('unit', unitPatterns)
+      } else {
+        // Normal practice mode: IDs are UUIDs from knowledge_chunks.id
+        query = query.in('id', selectedKnowledgeIds)
+      }
     }
 
-    const { data: mathChunks, error: mathError } = await query.order('id')
+    const { data: mathChunks, error: mathError } = await query.order('unit')
 
     if (mathError) {
       console.error('[generate] Math knowledge fetch error:', mathError.message)
@@ -47,8 +68,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }
 
     if (!mathChunks || mathChunks.length === 0) {
+      console.error('[generate] No math chunks found. selectedKnowledgeIds:', selectedKnowledgeIds)
       return NextResponse.json({ error: '找不到數學科知識點，請先執行 Migration' }, { status: 400 })
     }
+
+    console.log(`[generate] Found ${mathChunks.length} math knowledge chunks`)
 
     // Map Supabase rows to KnowledgeChunk interface
     knowledgeChunks = mathChunks.map(row => ({
