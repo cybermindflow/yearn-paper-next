@@ -9,17 +9,26 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const modeFilter = searchParams.get('mode') // optional: 'practice' | 'diagnosis' | 'exam'
 
-  // Get all papers for this parent
-  const { data: papers } = await supabaseAdmin
-    .from('papers')
-    .select('id')
-    .eq('parent_id', session.parentId)
+  // If mode filter provided, first get papers with that mode
+  let paperIds: string[]
+  if (modeFilter && ['practice', 'diagnosis', 'exam'].includes(modeFilter)) {
+    const { data: filteredPapers } = await supabaseAdmin
+      .from('papers')
+      .select('id')
+      .eq('parent_id', session.parentId)
+      .eq('mode', modeFilter)
+    paperIds = (filteredPapers || []).map(p => p.id)
+  } else {
+    const { data: allPapers } = await supabaseAdmin
+      .from('papers')
+      .select('id')
+      .eq('parent_id', session.parentId)
+    paperIds = (allPapers || []).map(p => p.id)
+  }
 
-  if (!papers || papers.length === 0) return NextResponse.json({ scores: [] })
+  if (paperIds.length === 0) return NextResponse.json({ scores: [] })
 
-  const paperIds = papers.map(p => p.id)
-
-  let query = supabaseAdmin
+  const { data: scores } = await supabaseAdmin
     .from('scores')
     .select(`
       *,
@@ -28,12 +37,6 @@ export async function GET(req: NextRequest) {
     .in('paper_id', paperIds)
     .order('completed_at', { ascending: false })
 
-  // Apply mode filter if provided
-  if (modeFilter && ['practice', 'diagnosis', 'exam'].includes(modeFilter)) {
-    query = query.eq('mode', modeFilter)
-  }
-
-  const { data: scores } = await query
   return NextResponse.json({ scores: scores || [] })
 }
 
@@ -64,7 +67,6 @@ export async function POST(req: NextRequest) {
       total_questions: totalQuestions,
       correct_count: correctCount,
       score_percentage: parseFloat(scorePercentage.toFixed(2)),
-      mode: paper.mode || 'practice',
     })
     .select()
     .single()

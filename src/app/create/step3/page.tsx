@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import AppLayout from '@/components/AppLayout'
 import StepIndicator from '@/components/StepIndicator'
 import { toast } from 'sonner'
-import { Loader2, CheckSquare, Square } from 'lucide-react'
+import { Loader2, CheckSquare, Square, Stethoscope } from 'lucide-react'
 
 const QUESTION_TYPES = [
   { id: 'mc', label: '選擇題', desc: '4 個選項，選一個正確答案' },
@@ -30,6 +30,17 @@ export default function Step3Page() {
   const [pageCount, setPageCount] = useState(2)
   const [deliveryMode, setDeliveryMode] = useState<'online' | 'pdf'>('online')
   const [loading, setLoading] = useState(false)
+  const [diagnosisSource, setDiagnosisSource] = useState<{ scoreId: string; knowledgeIds?: string[]; weakTopics?: string[] } | null>(null)
+
+  useEffect(() => {
+    const diagSrc = sessionStorage.getItem('yp_diagnosis_source')
+    if (diagSrc) {
+      try {
+        const parsed = JSON.parse(diagSrc)
+        setDiagnosisSource(parsed)
+      } catch { /* ignore */ }
+    }
+  }, [])
 
   const toggleType = (id: string) => {
     setSelectedTypes(prev =>
@@ -47,12 +58,10 @@ export default function Step3Page() {
     setLoading(true)
     try {
       // 1. Create paper
-      // Read mode and subject from sessionStorage (set by step1)
       const step1 = JSON.parse(sessionStorage.getItem('yp_step1') || '{}')
       const learningMode = step1.mode || 'practice'
       const subjectId = step1.subject || 'gs'
 
-      // Map subject ID to display name and topic
       const subjectMap: Record<string, { name: string; topic: string; unit: string }> = {
         gs: { name: '常識科', topic: '生活多姿彩', unit: '單元一' },
         ma: { name: '數學科', topic: '小三數學', unit: '網路知識圖譜' },
@@ -73,6 +82,7 @@ export default function Step3Page() {
           pageCount,
           mode: learningMode,
           deliveryMode,
+          source: diagnosisSource ? 'diagnosis' : undefined,
         }),
       })
       const paperData = await paperRes.json()
@@ -81,10 +91,16 @@ export default function Step3Page() {
       const paperId = paperData.paper.id
 
       // 2. Generate questions
+      // If coming from diagnosis, use weak topic knowledge IDs
+      let knowledgeIds = step2.knowledgeIds
+      if (diagnosisSource?.knowledgeIds && diagnosisSource.knowledgeIds.length > 0) {
+        knowledgeIds = diagnosisSource.knowledgeIds
+      }
+
       const genRes = await fetch(`/api/papers/${paperId}/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ knowledgeIds: step2.knowledgeIds }),
+        body: JSON.stringify({ knowledgeIds }),
       })
       const genData = await genRes.json()
       if (!genRes.ok) { toast.error(genData.error); return }
@@ -92,6 +108,7 @@ export default function Step3Page() {
       toast.success(`成功生成 ${genData.count} 道題目！`)
       sessionStorage.removeItem('yp_step1')
       sessionStorage.removeItem('yp_step2')
+      sessionStorage.removeItem('yp_diagnosis_source')
       router.push(`/paper/${paperId}`)
     } catch {
       toast.error('生成失敗，請稍後再試')
@@ -106,7 +123,19 @@ export default function Step3Page() {
         <StepIndicator steps={STEPS} current={3} />
 
         <div className="card">
-          <h2 className="text-xl font-bold mb-1" style={{ color: 'var(--brand-dark)' }}>設定題型與參數</h2>
+          {diagnosisSource && (
+            <div className="flex items-center gap-2 mb-4 p-3 rounded-xl"
+              style={{ background: '#ede9fe', border: '1px solid #c4b5fd' }}>
+              <Stethoscope size={16} style={{ color: '#7c3aed' }} />
+              <div>
+                <div className="text-sm font-semibold" style={{ color: '#5b21b6' }}>針對性練習模式</div>
+                <div className="text-xs" style={{ color: '#7c3aed' }}>根據診斷結果，已預選弱項知識點</div>
+              </div>
+            </div>
+          )}
+          <h2 className="text-xl font-bold mb-1" style={{ color: 'var(--brand-dark)' }}>
+            {diagnosisSource ? '生成針對練習卷' : '設定題型與參數'}
+          </h2>
           <p className="text-sm mb-6" style={{ color: 'var(--text-muted)' }}>
             預計生成 {totalQuestions} 道題目（每頁 3 題）
           </p>
@@ -200,7 +229,7 @@ export default function Step3Page() {
             <button onClick={() => router.back()} className="btn-secondary px-6">← 上一步</button>
             <button onClick={handleGenerate} disabled={loading || selectedTypes.length === 0}
               className="btn-primary px-8">
-              {loading ? <><Loader2 size={16} className="animate-spin" /> 生成中...</> : '生成練習卷 ✦'}
+              {loading ? <><Loader2 size={16} className="animate-spin" /> 生成中...</> : (diagnosisSource ? '生成針對練習卷 ✦' : '生成練習卷 ✦')}
             </button>
           </div>
         </div>

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import AppLayout from '@/components/AppLayout'
-import { Plus, BookOpen, FileText, BarChart2, Users, ChevronRight, Loader2, Stethoscope, PenLine, Trophy } from 'lucide-react'
+import { Plus, BookOpen, FileText, BarChart2, Users, ChevronRight, Loader2, Stethoscope, PenLine, Trophy, ClipboardList } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface Child { id: string; name: string; grade: string }
@@ -14,13 +14,15 @@ interface Paper {
 interface Score {
   id: string; paper_id: string; score_percentage: number
   total_questions: number; correct_count: number; completed_at: string
-  papers: { subject: string; unit: string }
+  mode?: string
+  papers: { subject: string; unit: string; mode?: string }
 }
 
 export default function DashboardPage() {
   const [children, setChildren] = useState<Child[]>([])
   const [papers, setPapers] = useState<Paper[]>([])
   const [scores, setScores] = useState<Score[]>([])
+  const [diagnosisScores, setDiagnosisScores] = useState<Score[]>([])
   const [loading, setLoading] = useState(true)
   const [showAddChild, setShowAddChild] = useState(false)
   const [childName, setChildName] = useState('')
@@ -31,10 +33,12 @@ export default function DashboardPage() {
       fetch('/api/children').then(r => r.json()),
       fetch('/api/papers').then(r => r.json()),
       fetch('/api/scores').then(r => r.json()),
-    ]).then(([c, p, s]) => {
+      fetch('/api/scores?mode=diagnosis').then(r => r.json()),
+    ]).then(([c, p, s, d]) => {
       setChildren(c.children || [])
       setPapers(p.papers || [])
       setScores(s.scores || [])
+      setDiagnosisScores(d.scores || [])
     }).finally(() => setLoading(false))
   }, [])
 
@@ -73,17 +77,18 @@ export default function DashboardPage() {
         <div className="mb-6">
           <h2 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-muted)' }}>選擇模式</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {/* 診斷模式 - coming soon */}
-            <div className="card flex flex-col items-center text-center py-5 opacity-50 cursor-not-allowed select-none"
-              style={{ borderColor: 'var(--border)' }}>
+            {/* 診斷模式 - active */}
+            <Link href="/diagnosis/create"
+              className="card flex flex-col items-center text-center py-5 no-underline group transition-all hover:shadow-md hover:-translate-y-0.5"
+              style={{ borderColor: '#8b5cf6', borderWidth: '2px' }}>
               <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3"
-                style={{ background: 'var(--surface)' }}>
-                <Stethoscope size={24} style={{ color: 'var(--text-muted)' }} />
+                style={{ background: '#8b5cf6' }}>
+                <Stethoscope size={24} color="#fff" />
               </div>
-              <div className="font-bold text-sm mb-1" style={{ color: 'var(--text-muted)' }}>診斷模式</div>
+              <div className="font-bold text-sm mb-1" style={{ color: '#5b21b6' }}>診斷模式</div>
               <div className="text-xs px-2 py-0.5 rounded-full font-medium"
-                style={{ background: '#f1f5f9', color: '#94a3b8' }}>即將推出</div>
-            </div>
+                style={{ background: '#ede9fe', color: '#7c3aed' }}>立即使用</div>
+            </Link>
 
             {/* 練習模式 - active */}
             <Link href="/create/step1?mode=practice"
@@ -197,8 +202,61 @@ export default function DashboardPage() {
             </Link>
           </div>
 
-          {/* Right: Papers + Scores */}
+          {/* Right: Diagnosis History + Papers + Scores */}
           <div className="lg:col-span-2 flex flex-col gap-4">
+            {/* Diagnosis History */}
+            <div className="card">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <ClipboardList size={16} style={{ color: '#8b5cf6' }} />
+                  <h2 className="font-bold text-base" style={{ color: '#5b21b6' }}>診斷歷史</h2>
+                </div>
+                <Link href="/diagnosis/create" className="btn-ghost text-xs no-underline"
+                  style={{ color: '#7c3aed' }}>
+                  + 新增診斷
+                </Link>
+              </div>
+              {diagnosisScores.length === 0 ? (
+                <div className="text-center py-6">
+                  <Stethoscope size={28} className="mx-auto mb-2" style={{ color: '#c4b5fd' }} />
+                  <p className="text-sm mb-3" style={{ color: 'var(--text-muted)' }}>未有診斷記錄</p>
+                  <Link href="/diagnosis/create" className="text-sm font-medium no-underline"
+                    style={{ color: '#7c3aed' }}>立即診斷 →</Link>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {diagnosisScores.slice(0, 3).map(s => {
+                    const pct = Math.round(s.score_percentage)
+                    return (
+                      <div key={s.id} className="flex items-center justify-between p-3 rounded-xl"
+                        style={{ background: '#faf5ff', border: '1px solid #e9d5ff' }}>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-sm" style={{ color: '#5b21b6' }}>
+                            {s.papers?.subject || '診斷卷'}
+                          </div>
+                          <div className="text-xs mt-0.5" style={{ color: '#7c3aed' }}>
+                            {s.completed_at ? new Date(s.completed_at).toLocaleDateString('zh-HK') : ''}
+                            {' · '}{s.correct_count}/{s.total_questions} 題正確
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 ml-3">
+                          <div className="text-lg font-bold"
+                            style={{ color: pct >= 80 ? 'var(--brand)' : pct >= 60 ? 'var(--warning)' : 'var(--danger)' }}>
+                            {pct}%
+                          </div>
+                          <Link href={`/diagnosis/${s.id}`}
+                            className="text-xs px-2 py-1 rounded-lg font-medium no-underline"
+                            style={{ background: '#ede9fe', color: '#7c3aed' }}>
+                            查看報告
+                          </Link>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+
             {/* Papers */}
             <div className="card">
               <div className="flex items-center justify-between mb-4">
