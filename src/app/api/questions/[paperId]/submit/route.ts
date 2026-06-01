@@ -44,20 +44,26 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pap
 
     return {
       id: q.id,
-      paper_id: paperId,
       child_answer: childAnswer,
       is_correct: isCorrect,
       answered_at: now,
     }
   })
 
-  // Batch upsert all questions in ONE request (avoid Vercel timeout)
-  const { error: upsertError } = await supabaseAdmin
-    .from('questions')
-    .upsert(updates, { onConflict: 'id' })
+  // Parallel update all questions (much faster than sequential, avoids timeout)
+  const updateResults = await Promise.all(
+    updates.map(u =>
+      supabaseAdmin
+        .from('questions')
+        .update({ child_answer: u.child_answer, is_correct: u.is_correct, answered_at: u.answered_at })
+        .eq('id', u.id)
+    )
+  )
 
-  if (upsertError) {
-    console.error('Upsert error:', upsertError)
+  // Check for errors
+  const updateErrors = updateResults.filter(r => r.error)
+  if (updateErrors.length > 0) {
+    console.error('Update errors:', updateErrors[0].error)
     return NextResponse.json({ error: 'Failed to save answers' }, { status: 500 })
   }
 
