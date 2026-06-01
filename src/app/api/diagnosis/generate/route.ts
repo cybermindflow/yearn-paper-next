@@ -135,6 +135,7 @@ export async function POST(req: NextRequest) {
   if (insertError) {
     // If knowledge_point_id column doesn't exist yet, retry without it
     console.error('[diagnosis/generate] Insert with knowledge_point_id failed:', insertError.message)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const insertsWithoutKp = inserts.map(({ knowledge_point_id: _kp, ...rest }) => rest)
     const { error: retryError } = await supabaseAdmin.from('questions').insert(insertsWithoutKp)
     if (retryError) {

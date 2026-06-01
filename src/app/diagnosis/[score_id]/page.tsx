@@ -108,14 +108,21 @@ export default function DiagnosisReportPage({ params }: { params: Promise<{ scor
       toast.info('恭喜！所有知識點均已掌握，無需針對練習。')
       return
     }
-    // Navigate to Step 3 with pre-selected weak knowledge points
-    const params = new URLSearchParams({
-      source: 'diagnosis',
-      subject: report.paper.subject === '數學科' ? 'ma' : 'cs',
-      grade: 'P3',
-      knowledgePointIds: report.weakPointIds.join(','),
-    })
-    router.push(`/create/step3?${params.toString()}`)
+    setGenerating(true)
+    try {
+      // Store diagnosis source in sessionStorage for Step 3 to read
+      const subjectId = report.paper.subject === '數學科' ? 'ma' : 'gs'
+      sessionStorage.setItem('yp_step1', JSON.stringify({ grade: 'P3', subject: subjectId, mode: 'practice' }))
+      sessionStorage.setItem('yp_step2', JSON.stringify({ knowledgeIds: report.weakPointIds }))
+      sessionStorage.setItem('yp_diagnosis_source', JSON.stringify({
+        scoreId: score_id,
+        knowledgeIds: report.weakPointIds,
+        weakTopics: report.weakPointIds,
+      }))
+      router.push('/create/step3')
+    } finally {
+      setGenerating(false)
+    }
   }
 
   const handleRetryDiagnosis = () => {
