@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import AppLayout from '@/components/AppLayout'
-import { Plus, BookOpen, FileText, BarChart2, Users, ChevronRight, Loader2, Stethoscope, PenLine, Trophy, ClipboardList } from 'lucide-react'
+import { Plus, BookOpen, FileText, BarChart2, Users, ChevronRight, Loader2, Stethoscope, PenLine, Trophy, ClipboardList, Clock } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface Child { id: string; name: string; grade: string }
@@ -15,7 +15,13 @@ interface Score {
   id: string; paper_id: string; score_percentage: number
   total_questions: number; correct_count: number; completed_at: string
   mode?: string
-  papers: { subject: string; unit: string; mode?: string }
+  papers: { subject: string; unit: string; mode?: string; time_limit_minutes?: number }
+}
+interface ExamScore {
+  id: string; paper_id: string; score_percentage: number
+  total_questions: number; correct_count: number
+  time_spent_seconds: number; completed_at: string
+  papers: { id: string; subject: string; topic: string; time_limit_minutes: number }
 }
 
 export default function DashboardPage() {
@@ -23,6 +29,7 @@ export default function DashboardPage() {
   const [papers, setPapers] = useState<Paper[]>([])
   const [scores, setScores] = useState<Score[]>([])
   const [diagnosisScores, setDiagnosisScores] = useState<Score[]>([])
+  const [examScores, setExamScores] = useState<ExamScore[]>([])
   const [loading, setLoading] = useState(true)
   const [showAddChild, setShowAddChild] = useState(false)
   const [childName, setChildName] = useState('')
@@ -34,11 +41,13 @@ export default function DashboardPage() {
       fetch('/api/papers').then(r => r.json()),
       fetch('/api/scores').then(r => r.json()),
       fetch('/api/scores?mode=diagnosis').then(r => r.json()),
-    ]).then(([c, p, s, d]) => {
+      fetch('/api/exam/history').then(r => r.json()),
+    ]).then(([c, p, s, d, e]) => {
       setChildren(c.children || [])
       setPapers(p.papers || [])
       setScores(s.scores || [])
       setDiagnosisScores(d.scores || [])
+      setExamScores(e.exams || [])
     }).finally(() => setLoading(false))
   }, [])
 
@@ -103,17 +112,18 @@ export default function DashboardPage() {
                 style={{ background: 'var(--brand-pale)', color: 'var(--brand)' }}>立即使用</div>
             </Link>
 
-            {/* 模擬考試 - coming soon */}
-            <div className="card flex flex-col items-center text-center py-5 opacity-50 cursor-not-allowed select-none"
-              style={{ borderColor: 'var(--border)' }}>
+            {/* 模擬考試 - now active */}
+            <Link href="/exam/create"
+              className="card flex flex-col items-center text-center py-5 no-underline group transition-all hover:shadow-md hover:-translate-y-0.5"
+              style={{ borderColor: '#f59e0b', borderWidth: '2px' }}>
               <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-3"
-                style={{ background: 'var(--surface)' }}>
-                <Trophy size={24} style={{ color: 'var(--text-muted)' }} />
+                style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}>
+                <Trophy size={24} color="#fff" />
               </div>
-              <div className="font-bold text-sm mb-1" style={{ color: 'var(--text-muted)' }}>模擬考試</div>
+              <div className="font-bold text-sm mb-1" style={{ color: '#92400e' }}>模擬考試</div>
               <div className="text-xs px-2 py-0.5 rounded-full font-medium"
-                style={{ background: '#f1f5f9', color: '#94a3b8' }}>即將推出</div>
-            </div>
+                style={{ background: '#fef3c7', color: '#d97706' }}>立即使用</div>
+            </Link>
           </div>
           <p className="text-xs mt-2 text-center" style={{ color: 'var(--text-muted)' }}>
             建議先完成診斷，了解孩子弱項，再生成針對性練習。
@@ -329,6 +339,61 @@ export default function DashboardPage() {
                 </div>
               </div>
             )}
+
+            {/* Exam history */}
+            <div className="card">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Trophy size={16} style={{ color: '#d97706' }} />
+                  <h2 className="font-bold text-base" style={{ color: '#92400e' }}>模擬考試歷史</h2>
+                </div>
+                <Link href="/exam/create" className="btn-ghost text-xs no-underline"
+                  style={{ color: '#d97706' }}>+ 新增考試</Link>
+              </div>
+              {examScores.length === 0 ? (
+                <div className="text-center py-6">
+                  <Trophy size={28} className="mx-auto mb-2" style={{ color: '#fcd34d' }} />
+                  <p className="text-sm mb-3" style={{ color: 'var(--text-muted)' }}>未有考試記錄</p>
+                  <Link href="/exam/create" className="text-sm font-medium no-underline"
+                    style={{ color: '#d97706' }}>立即考試 →</Link>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {examScores.slice(0, 3).map(s => {
+                    const pct = Math.round(s.score_percentage)
+                    const mins = s.time_spent_seconds ? Math.round(s.time_spent_seconds / 60) : null
+                    return (
+                      <div key={s.id} className="flex items-center justify-between p-3 rounded-xl"
+                        style={{ background: '#fffbeb', border: '1px solid #fde68a' }}>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-sm" style={{ color: '#92400e' }}>
+                            {s.papers?.subject || '模擬考試'} · {s.papers?.topic || 'P3'}
+                          </div>
+                          <div className="text-xs mt-0.5 flex items-center gap-1" style={{ color: '#d97706' }}>
+                            {s.completed_at ? new Date(s.completed_at).toLocaleDateString('zh-HK') : ''}
+                            {mins && (
+                              <><span>·</span><Clock size={10} /><span>{mins} 分鐘</span></>
+                            )}
+                            <span>·</span><span>{s.correct_count}/{s.total_questions} 題</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 ml-3">
+                          <div className="text-lg font-bold"
+                            style={{ color: pct >= 75 ? '#16a34a' : pct >= 60 ? '#d97706' : '#dc2626' }}>
+                            {pct}%
+                          </div>
+                          <Link href={`/exam/${s.paper_id}/result`}
+                            className="text-xs px-2 py-1 rounded-lg font-medium no-underline"
+                            style={{ background: '#fef3c7', color: '#d97706' }}>
+                            查看報告
+                          </Link>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
