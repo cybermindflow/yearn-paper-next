@@ -759,39 +759,174 @@ function generateClassifyQuestion(chunk: KnowledgeChunk, num: number): Generated
   }
 }
 
-// Map subject to relevant image keys for mock image_mc generation
-const SUBJECT_IMAGE_KEYS: Record<string, string[]> = {
-  '數學科': ['right_triangle', 'square', 'rectangle', 'circle', 'clock', 'number_line', 'cuboid', 'angle_types', 'compass_rose', 'multiplication_table'],
-  '科學科': ['plant_structure', 'simple_circuit', 'water_cycle', 'states_of_matter', 'simple_food_chain', 'force_push_pull', 'magnet', 'five_senses', 'light_and_shadow', 'inclined_plane'],
-  '常識科': ['traffic_light', 'stop_sign', 'zebra_crossing', 'hk_simple_map', 'community_facilities', 'mtr_train', 'weather_symbols', 'family_tree'],
-  '中文科': ['stroke_order', 'sentence_structure', 'metaphor_simile'],
-  '英文科': ['alphabet_case', 'tense_comparison', 'paragraph_structure', 'parts_of_speech'],
-}
-const DEFAULT_IMAGE_KEYS = ['right_triangle', 'clock', 'circle', 'square', 'number_line']
+// ── Image-MC: knowledge-point → image_key semantic mapping ───────────────────
+// Each entry maps a keyword found in knowledge_point to a specific image_key
+// AND provides a fixed question/options that accurately describe the SVG content.
+// If no keyword matches, generateImageMCQuestion() falls back to generateMCQuestion().
 
-function getImageKeyForChunk(chunk: KnowledgeChunk): string {
-  const keys = SUBJECT_IMAGE_KEYS[chunk.subject] || DEFAULT_IMAGE_KEYS
-  // Pick a deterministic key based on knowledge_point length
-  const idx = chunk.knowledge_point.length % keys.length
-  return keys[idx]
+interface ImageMCTemplate {
+  image_key: string
+  question_text: string
+  options: Record<string, string>
+  correct_answer: string
+  explanation: string
+}
+
+// Validated SVG content (confirmed by reading each SVG file):
+// clock.svg        → 時鐘顯示 3:00（三時正）
+// number_line.svg  → 數線 0-9，示例：3 ＋ 4 ＝ 7（從 3 向右跳 4 格到 7）
+// right_triangle.svg → 直角三角形，標示底邊、直角邊、斜邊
+// square.svg       → 正方形（四邊等長）
+// rectangle.svg    → 長方形（對邊等長）
+// circle.svg       → 圓形，標示半徑
+// angle_types.svg  → 銳角 45°、直角 90°、鈍角 120°
+// cuboid.svg       → 長方體，標示長、寬、高
+// compass_rose.svg → 指南針：北、南、東、西
+// multiplication_table.svg → 乘法表（2-5 段，列 1-4）
+
+const MATH_IMAGE_TEMPLATES: Array<{ keywords: string[]; template: ImageMCTemplate }> = [
+  {
+    keywords: ['時間', '時鐘'],
+    template: {
+      image_key: 'clock',
+      question_text: '請觀察右圖的時鐘，圖中時鐘顯示的時間是幾時？',
+      options: { A: '三時正（3:00）', B: '十二時正（12:00）', C: '六時正（6:00）', D: '九時正（9:00）' },
+      correct_answer: 'A',
+      explanation: '時鐘的時針指向 3，分針指向 12，因此顯示的時間是三時正（3:00）。',
+    },
+  },
+  {
+    keywords: ['加法', '數線'],
+    template: {
+      image_key: 'number_line',
+      question_text: '請觀察右圖的數線，圖中箭頭從 3 向右跳 4 格，到達哪個數字？',
+      options: { A: '7', B: '5', C: '6', D: '8' },
+      correct_answer: 'A',
+      explanation: '數線上從 3 向右跳 4 格：3 ＋ 4 ＝ 7，因此到達 7。',
+    },
+  },
+  {
+    keywords: ['平面圖形', '三角形', '直角'],
+    template: {
+      image_key: 'right_triangle',
+      question_text: '請觀察右圖的三角形，這個三角形有哪一種特別的角？',
+      options: { A: '直角（90°）', B: '鈍角（大於 90°）', C: '平角（180°）', D: '沒有特別的角' },
+      correct_answer: 'A',
+      explanation: '圖中三角形在底部左方有一個直角標記，因此這是一個直角三角形，含有直角（90°）。',
+    },
+  },
+  {
+    keywords: ['正方形', '周界'],
+    template: {
+      image_key: 'square',
+      question_text: '請觀察右圖的圖形，以下哪一項正確描述了這個圖形的特徵？',
+      options: { A: '四邊等長，四個角都是直角', B: '對邊等長，但四邊不全相等', C: '只有兩條邊相等', D: '沒有直角' },
+      correct_answer: 'A',
+      explanation: '圖中圖形是正方形，四邊等長，四個角都是直角（90°）。',
+    },
+  },
+  {
+    keywords: ['長方形', '長方體'],
+    template: {
+      image_key: 'rectangle',
+      question_text: '請觀察右圖的圖形，以下哪一項正確描述了這個長方形的特徵？',
+      options: { A: '對邊等長，四個角都是直角', B: '四邊全部等長', C: '只有一組對邊平行', D: '沒有直角' },
+      correct_answer: 'A',
+      explanation: '長方形的對邊等長，四個角都是直角（90°）。',
+    },
+  },
+  {
+    keywords: ['圓形', '圓', '半徑'],
+    template: {
+      image_key: 'circle',
+      question_text: '請觀察右圖的圓形，圖中標示的虛線代表什麼？',
+      options: { A: '半徑（圓心到圓周的距離）', B: '直徑（圓周到圓周的最長距離）', C: '弦（連接兩點的線段）', D: '切線（與圓周相切的直線）' },
+      correct_answer: 'A',
+      explanation: '圖中從圓心到圓周的虛線代表半徑，半徑是圓心到圓周上任何一點的距離。',
+    },
+  },
+  {
+    keywords: ['角', '角度'],
+    template: {
+      image_key: 'angle_types',
+      question_text: '請觀察右圖，圖中哪一種角的度數小於 90°？',
+      options: { A: '銳角（45°）', B: '直角（90°）', C: '鈍角（120°）', D: '平角（180°）' },
+      correct_answer: 'A',
+      explanation: '圖中左方的銳角為 45°，小於 90°；中間的直角為 90°；右方的鈍角為 120°，大於 90°。',
+    },
+  },
+  {
+    keywords: ['方向', '位置'],
+    template: {
+      image_key: 'compass_rose',
+      question_text: '請觀察右圖的指南針，圖中「N」代表哪個方向？',
+      options: { A: '北方', B: '南方', C: '東方', D: '西方' },
+      correct_answer: 'A',
+      explanation: '指南針上「N」代表 North（北方），「S」代表南方，「E」代表東方，「W」代表西方。',
+    },
+  },
+  {
+    keywords: ['乘法'],
+    template: {
+      image_key: 'multiplication_table',
+      question_text: '請觀察右圖的乘法表，3 × 4 的答案是多少？',
+      options: { A: '12', B: '7', C: '9', D: '16' },
+      correct_answer: 'A',
+      explanation: '在乘法表中，第 3 行與第 4 列交叉的格子顯示 12，因此 3 × 4 ＝ 12。',
+    },
+  },
+]
+
+// Validated SVG files in public/images/shapes/ (36 files total)
+// Only keys present in QuestionImage.tsx IMAGE_MAP are valid for rendering
+const VALID_IMAGE_KEYS = new Set([
+  // Math
+  'right_triangle', 'square', 'rectangle', 'circle', 'compass_rose',
+  'position_map', 'angle_types', 'number_line', 'cuboid', 'clock', 'multiplication_table',
+  // Science
+  'simple_circuit', 'states_of_matter', 'light_and_shadow', 'plant_structure',
+  'simple_food_chain', 'water_cycle', 'force_push_pull', 'magnet', 'five_senses', 'inclined_plane',
+  // General Studies
+  'hk_simple_map', 'traffic_light', 'stop_sign', 'zebra_crossing',
+  'community_facilities', 'mtr_train', 'weather_symbols', 'family_tree',
+  // Chinese
+  'stroke_order', 'sentence_structure', 'metaphor_simile',
+  // English
+  'alphabet_case', 'tense_comparison', 'paragraph_structure', 'parts_of_speech',
+])
+
+function findMathImageTemplate(chunk: KnowledgeChunk): ImageMCTemplate | null {
+  const kp = chunk.knowledge_point
+  for (const entry of MATH_IMAGE_TEMPLATES) {
+    if (entry.keywords.some(kw => kp.includes(kw))) {
+      // Validate that the image_key is in our known valid set
+      if (VALID_IMAGE_KEYS.has(entry.template.image_key)) {
+        return entry.template
+      }
+    }
+  }
+  return null
 }
 
 function generateImageMCQuestion(chunk: KnowledgeChunk, num: number): GeneratedQuestion {
-  const imageKey = getImageKeyForChunk(chunk)
-  return {
-    question_number: num,
-    question_text: `請觀察圖形，判斷它與「${chunk.knowledge_point}」的哪一項描述符合？`,
-    question_type: 'image_mc',
-    options: {
-      A: `圖形展示了${chunk.knowledge_point}的主要特徵`,
-      B: `圖形與${chunk.knowledge_point}完全無關`,
-      C: `圖形只適用於高年級學生`,
-      D: `圖形表示的是其他科目的內容`,
-    },
-    correct_answer: 'A',
-    explanation: `圖形展示了${chunk.knowledge_point}的相關內容。${chunk.learning_objective}`,
-    image_key: imageKey,
+  // Only Math subject has validated image templates for mock mode
+  if (chunk.subject === '數學科') {
+    const template = findMathImageTemplate(chunk)
+    if (template) {
+      return {
+        question_number: num,
+        question_text: template.question_text,
+        question_type: 'image_mc',
+        options: template.options,
+        correct_answer: template.correct_answer,
+        explanation: template.explanation,
+        image_key: template.image_key,
+      }
+    }
   }
+  // No matching image template found → fall back to plain MC question
+  console.log(`[MockLLM] No image template for "${chunk.knowledge_point}" (${chunk.subject}), falling back to MC`)
+  return generateMCQuestion(chunk, num)
 }
 
 function generateOneQuestion(

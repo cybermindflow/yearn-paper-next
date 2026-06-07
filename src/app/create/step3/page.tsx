@@ -7,51 +7,63 @@ import StepIndicator from '@/components/StepIndicator'
 import { toast } from 'sonner'
 import { Loader2, CheckSquare, Square, Stethoscope } from 'lucide-react'
 
-// 通用題型（常識科、數學科、人文科）
+// 通用題型（數學科、人文科）- 看圖題型開放
 const GENERAL_QUESTION_TYPES = [
-  { id: 'mc', label: '選擇題', desc: '4 個選項，選一個正確答案' },
-  { id: 'tf', label: '判斷題', desc: '判斷陳述是否正確' },
-  { id: 'fill', label: '填充題', desc: '填入正確詞語' },
-  { id: 'match', label: '配對題', desc: '將項目與描述配對' },
-  { id: 'classify', label: '分類題', desc: '將項目分類' },
-  { id: 'image_mc', label: '看圖選擇題 🖼️', desc: '根據圖形選擇正確答案' },
-  { id: 'short', label: '問答題（短）', desc: '2-3 句短答' },
-  { id: 'essay', label: '問答題（長）', desc: '段落式作答' },
+  { id: 'mc', label: '選擇題', desc: '4 個選項，選一個正確答案', available: true },
+  { id: 'tf', label: '判斷題', desc: '判斷陳述是否正確', available: true },
+  { id: 'fill', label: '填充題', desc: '填入正確詞語', available: true },
+  { id: 'match', label: '配對題', desc: '將項目與描述配對', available: true },
+  { id: 'classify', label: '分類題', desc: '將項目分類', available: true },
+  { id: 'image_mc', label: '看圖選擇題 🖼️', desc: '根據圖形選擇正確答案', available: true },
+  { id: 'short', label: '問答題（短）', desc: '2-3 句短答', available: true },
+  { id: 'essay', label: '問答題（長）', desc: '段落式作答', available: true },
+]
+
+// 常識科題型 - 看圖題型暫停（圖庫尚未完善）
+const GS_QUESTION_TYPES = [
+  { id: 'mc', label: '選擇題', desc: '4 個選項，選一個正確答案', available: true },
+  { id: 'tf', label: '判斷題', desc: '判斷陳述是否正確', available: true },
+  { id: 'fill', label: '填充題', desc: '填入正確詞語', available: true },
+  { id: 'match', label: '配對題', desc: '將項目與描述配對', available: true },
+  { id: 'classify', label: '分類題', desc: '將項目分類', available: true },
+  { id: 'image_mc', label: '看圖選擇題 🖼️', desc: '（即將推出）圖庫完善後開放', available: false },
+  { id: 'short', label: '問答題（短）', desc: '2-3 句短答', available: true },
+  { id: 'essay', label: '問答題（長）', desc: '段落式作答', available: true },
 ]
 
 // 中文科專屬題型
 const CHINESE_QUESTION_TYPES = [
-  { id: 'mc', label: '選擇題', desc: '4 個選項，選一個正確答案' },
-  { id: 'fill', label: '填充題', desc: '填入正確詞語或標點' },
-  { id: 'dictation', label: '默寫題', desc: '默寫詞語或句子' },
-  { id: 'reorder', label: '排列句子', desc: '將句子排列成正確順序' },
-  { id: 'comprehension', label: '閱讀理解', desc: '根據短文回答問題' },
-  { id: 'image_mc', label: '看圖選擇題 🖼️', desc: '根據圖形（筆順/句子結構）選擇正確答案' },
-  { id: 'composition', label: '寫作題', desc: '短篇作文或看圖寫作' },
-  { id: 'short', label: '問答題（短）', desc: '2-3 句短答' },
+  { id: 'mc', label: '選擇題', desc: '4 個選項，選一個正確答案', available: true },
+  { id: 'fill', label: '填充題', desc: '填入正確詞語或標點', available: true },
+  { id: 'dictation', label: '默寫題', desc: '默寫詞語或句子', available: true },
+  { id: 'reorder', label: '排列句子', desc: '將句子排列成正確順序', available: true },
+  { id: 'comprehension', label: '閱讀理解', desc: '根據短文回答問題', available: true },
+  { id: 'image_mc', label: '看圖選擇題 🖼️', desc: '根據圖形（筆順/句子結構）選擇正確答案', available: true },
+  { id: 'composition', label: '寫作題', desc: '短篇作文或看圖寫作', available: true },
+  { id: 'short', label: '問答題（短）', desc: '2-3 句短答', available: true },
 ]
 
-// 科學科專屬題型
+// 科學科專屬題型 - 看圖題型暫停（圖庫尚未完善）
 const SCIENCE_QUESTION_TYPES = [
-  { id: 'mc', label: '選擇題', desc: '4 個選項，選一個正確答案' },
-  { id: 'tf', label: '判斷題', desc: '判斷科學陳述是否正確' },
-  { id: 'fill', label: '填充題', desc: '填入科學詞語或數值' },
-  { id: 'image_mc', label: '看圖選擇題 🖼️', desc: '根據科學圖形（電路/食物鏈/植物）選擇答案' },
-  { id: 'label', label: '標示題', desc: '標示圖表中的結構或部分' },
-  { id: 'experiment', label: '實驗設計題', desc: '設計或分析科學實驗' },
-  { id: 'short', label: '問答題（短）', desc: '解釋科學現象（2-3 句）' },
-  { id: 'essay', label: '問答題（長）', desc: '深入分析科學概念' },
+  { id: 'mc', label: '選擇題', desc: '4 個選項，選一個正確答案', available: true },
+  { id: 'tf', label: '判斷題', desc: '判斷科學陳述是否正確', available: true },
+  { id: 'fill', label: '填充題', desc: '填入科學詞語或數値', available: true },
+  { id: 'image_mc', label: '看圖選擇題 🖼️', desc: '（即將推出）圖庫完善後開放', available: false },
+  { id: 'label', label: '標示題', desc: '標示圖表中的結構或部分', available: true },
+  { id: 'experiment', label: '實驗設計題', desc: '設計或分析科學實驗', available: true },
+  { id: 'short', label: '問答題（短）', desc: '解釋科學現象（2-3 句）', available: true },
+  { id: 'essay', label: '問答題（長）', desc: '深入分析科學概念', available: true },
 ]
 
 // 英文科專屬題型
 const ENGLISH_QUESTION_TYPES = [
-  { id: 'mc', label: 'Multiple Choice', desc: '4 options, choose the correct answer' },
-  { id: 'fill', label: 'Fill in the blanks', desc: 'Fill in the correct word or phrase' },
-  { id: 'tf', label: 'True or False', desc: 'Decide if the statement is true or false' },
-  { id: 'match', label: 'Matching', desc: 'Match words with their meanings or pictures' },
-  { id: 'image_mc', label: 'Picture-based MC 🖼️', desc: 'Look at a diagram and choose the correct answer' },
-  { id: 'reorder', label: 'Rearrange words', desc: 'Rearrange words to form a correct sentence' },
-  { id: 'comprehension', label: 'Reading Comprehension', desc: 'Read a short passage and answer questions' },
+  { id: 'mc', label: 'Multiple Choice', desc: '4 options, choose the correct answer', available: true },
+  { id: 'fill', label: 'Fill in the blanks', desc: 'Fill in the correct word or phrase', available: true },
+  { id: 'tf', label: 'True or False', desc: 'Decide if the statement is true or false', available: true },
+  { id: 'match', label: 'Matching', desc: 'Match words with their meanings or pictures', available: true },
+  { id: 'image_mc', label: 'Picture-based MC 🖼️', desc: 'Look at a diagram and choose the correct answer', available: true },
+  { id: 'reorder', label: 'Rearrange words', desc: 'Rearrange words to form a correct sentence', available: true },
+  { id: 'comprehension', label: 'Reading Comprehension', desc: 'Read a short passage and answer questions', available: true },
 ]
 
 // 科目對應題型和預設選擇
@@ -60,7 +72,7 @@ const SUBJECT_TYPE_CONFIG: Record<string, {
   defaults: string[]
   color: string
 }> = {
-  gs:  { types: GENERAL_QUESTION_TYPES, defaults: ['mc', 'tf'], color: '#16a34a' },
+  gs:  { types: GS_QUESTION_TYPES, defaults: ['mc', 'tf'], color: '#16a34a' },
   ma:  { types: GENERAL_QUESTION_TYPES, defaults: ['mc', 'fill'], color: '#2563eb' },
   ch:  { types: CHINESE_QUESTION_TYPES, defaults: ['mc', 'fill', 'comprehension'], color: '#dc2626' },
   hum: { types: GENERAL_QUESTION_TYPES, defaults: ['mc', 'tf'], color: '#0284c7' },
@@ -239,20 +251,25 @@ export default function Step3Page() {
             <label className="label mb-3">題型選擇（可多選）</label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {questionTypes.map(t => {
-                const isSelected = selectedTypes.includes(t.id)
+                const isAvailable = (t as { available?: boolean }).available !== false
+                const isSelected = isAvailable && selectedTypes.includes(t.id)
                 return (
-                  <button key={t.id} onClick={() => toggleType(t.id)}
+                  <button key={t.id}
+                    onClick={() => isAvailable ? toggleType(t.id) : undefined}
+                    disabled={!isAvailable}
                     className="flex items-start gap-3 p-3 rounded-xl text-left transition-all"
                     style={{
-                      background: isSelected ? accentColor + '15' : 'var(--surface)',
-                      border: `1.5px solid ${isSelected ? accentColor : 'var(--border)'}`,
+                      background: !isAvailable ? '#f3f4f6' : isSelected ? accentColor + '15' : 'var(--surface)',
+                      border: `1.5px solid ${!isAvailable ? '#e5e7eb' : isSelected ? accentColor : 'var(--border)'}`,
+                      opacity: isAvailable ? 1 : 0.6,
+                      cursor: isAvailable ? 'pointer' : 'not-allowed',
                     }}>
-                    <div className="mt-0.5 flex-shrink-0" style={{ color: isSelected ? accentColor : 'var(--border)' }}>
+                    <div className="mt-0.5 flex-shrink-0" style={{ color: !isAvailable ? '#d1d5db' : isSelected ? accentColor : 'var(--border)' }}>
                       {isSelected ? <CheckSquare size={16} /> : <Square size={16} />}
                     </div>
                     <div>
-                      <div className="font-semibold text-sm" style={{ color: 'var(--text)' }}>{t.label}</div>
-                      <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{t.desc}</div>
+                      <div className="font-semibold text-sm" style={{ color: isAvailable ? 'var(--text)' : '#9ca3af' }}>{t.label}</div>
+                      <div className="text-xs" style={{ color: isAvailable ? 'var(--text-muted)' : '#9ca3af' }}>{t.desc}</div>
                     </div>
                   </button>
                 )

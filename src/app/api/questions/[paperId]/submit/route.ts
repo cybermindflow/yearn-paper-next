@@ -33,7 +33,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pap
   const now = new Date().toISOString()
   const updates = questions.map(q => {
     const childAnswer = answers[q.id] ?? null
-    const isObjective = ['mc', 'tf', 'fill', 'match', 'classify'].includes(q.question_type)
+    const isObjective = ['mc', 'tf', 'fill', 'match', 'classify', 'image_mc'].includes(q.question_type)
     let isCorrect: boolean | null = null
 
     if (isObjective && childAnswer !== null) {
@@ -69,7 +69,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pap
 
   // Count only objective questions for score
   const objectiveQuestions = questions.filter(q =>
-    ['mc', 'tf', 'fill', 'match', 'classify'].includes(q.question_type)
+    ['mc', 'tf', 'fill', 'match', 'classify', 'image_mc'].includes(q.question_type)
   )
   const totalObjective = objectiveQuestions.length
   const scorePercentage = totalObjective > 0 ? (correctCount / totalObjective) * 100 : 0
