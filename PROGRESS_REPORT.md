@@ -1071,3 +1071,30 @@ if (selectedKnowledgeIds.some(isBaseCode)) {
 ### 偏差記錄
 1. PDF 下載生成新卷（非複用），已在 UI 說明
 2. 「返回作答」解鎖目標未答題目（繞過鎖定規則），僅針對未答題目
+
+---
+
+## Phase 5 Session — 2026-06-07
+
+### 目標
+新增小三中文科（27個）和科學科（21個）知識圖譜，擴展 Step 1 至 6 個科目，新增人文科映射邏輯，擴展 DeepSeek Prompt 和題型。
+
+### 完成項目
+
+1. **knowledgeBase.ts** — 新增中文科 P3（27個知識點，4大範疇：閱讀/寫作/語文知識/聆聽說話/中華文化）和科學科 P3（21個知識點，3大範疇：生命科學/物質科學/地球科學）
+2. **Step 1 頁面** — 擴展至 6 個科目（2×3 網格）：數學科、英文科、常識科、中文科、科學科、人文科；人文科選擇後映射至常識科知識庫
+3. **Step 2 頁面** — 新增中文科（四大範疇分組）、科學科（三大範疇分組）、人文科（六大範疇分組）顯示邏輯
+4. **Step 3 頁面** — 新增中文科題型（閱讀理解題/默書題/句子改寫題/作文題/排列順序題）和科學科題型（判斷題/圖表標示題/實驗設計題/分類題）
+5. **mockLLM.ts** — 新增 `buildChineseSystemPrompt` 和 `buildScienceSystemPrompt`，在 `buildSystemPrompt` 加入路由邏輯
+6. **knowledge API** — 支援中文科、科學科、人文科（映射至常識科）
+7. **generate API** — 支援中文科、科學科、人文科（映射至常識科知識庫）
+8. **Supabase 資料庫** — 插入中文科 P3（27筆）和科學科 P3（21筆），驗證結果：中文科=27，科學科=21 ✅
+
+### 偏差記錄
+無偏差，嚴格按照 Phase 5 指令執行。
+
+### Commit
+`6e69a9b` — feat: Phase 5 - add Chinese P3 (27) and Science P3 (21) knowledge graphs, expand to 6 subjects
+
+### TypeScript 檢查
+✅ tsc --noEmit 無錯誤
