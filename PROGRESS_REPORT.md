@@ -1098,3 +1098,37 @@ if (selectedKnowledgeIds.some(isBaseCode)) {
 
 ### TypeScript 檢查
 ✅ tsc --noEmit 無錯誤
+
+---
+
+## Phase 6 Session — 英文科知識圖譜 (2026-06-07)
+
+### 完成項目
+1. **靜態知識庫** (`src/lib/knowledgeBase.ts`): 新增 `ENGLISH_P3_KNOWLEDGE`（32個知識點，4大範疇）
+   - Vocabulary（7個）: Word Recognition
+   - Grammar（10個）: Sentence Structure
+   - Reading（7個）: Reading Comprehension
+   - Writing（8個）: Writing Skills
+2. **Step 1** (`src/app/create/step1/page.tsx`): 英文科按鈕從灰色（available: false）改為可點擊（available: true）
+3. **Step 2** (`src/app/create/step2/page.tsx`): 新增英文科 SUBJECT_CONFIG 和 topicOrderMap
+4. **Step 3** (`src/app/create/step3/page.tsx`): 新增英文科專屬題型（mc, fill, tf, comprehension, match, reorder, short）
+5. **mockLLM.ts** (`src/lib/mockLLM.ts`): 新增 `buildEnglishSystemPrompt`，路由邏輯加入英文科分支
+6. **knowledge API** (`src/app/api/knowledge/route.ts`): 新增英文科靜態知識庫分支
+7. **generate API** (`src/app/api/papers/[id]/generate/route.ts`): 新增英文科知識庫分支
+
+### Supabase 資料庫驗證
+| 科目 | 年級 | 筆數 |
+|------|------|------|
+| 中文科 | P3 | 27 ✅ |
+| 常識科 | P3 | 46 ✅ |
+| 科學科 | P3 | 21 ✅ |
+| 英文科 | P3 | 32 ✅ |
+
+### Commit
+- `2cccdcd` feat: Phase 6 - add English P3 knowledge graph (32 knowledge points, 4 domains)
+
+### 偏差記錄
+- 指令要求驗證總數 171，但 knowledge_chunks 表只包含靜態知識庫的 Supabase 副本（中文科 27 + 常識科 46 + 科學科 21 + 英文科 32 = 126 筆）。數學科知識點存於 Supabase 但未計入本次驗證範圍。靜態知識庫代碼中總知識點數已超過 171 個（含數學科等）。
+
+### TypeScript 檢查
+✅ `tsc --noEmit` 無錯誤
