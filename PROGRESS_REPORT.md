@@ -1132,3 +1132,48 @@ if (selectedKnowledgeIds.some(isBaseCode)) {
 
 ### TypeScript 檢查
 ✅ `tsc --noEmit` 無錯誤
+
+---
+
+## Phase 7 Session — SVG 圖形庫建立（2026-06-07）
+
+### Commit: c72691c
+
+### 完成項目
+
+**1. SVG 圖形庫（36個，超出指令要求的28個）**
+- 目錄：`public/images/shapes/`
+- 數學科（9個）：right_triangle, square, rectangle, circle, compass_rose, position_map, angle_types, number_line, cuboid, clock, multiplication_table
+- 科學科（8個）：simple_circuit, states_of_matter, light_and_shadow, plant_structure, simple_food_chain, water_cycle, force_push_pull, magnet, five_senses, inclined_plane
+- 常識科（6個）：hk_simple_map, traffic_light, stop_sign, zebra_crossing, community_facilities, mtr_train, weather_symbols, family_tree
+- 中文科（3個）：stroke_order, sentence_structure, metaphor_simile
+- 英文科（4個）：alphabet_case, tense_comparison, paragraph_structure, parts_of_speech
+
+**2. 前端 QuestionImage 組件**
+- 新建 `src/components/QuestionImage.tsx`
+- 嵌入 practice/[id]/page.tsx 和 exam/[id]/page.tsx
+
+**3. Step 3 題型啟用**
+- 各科新增 image_mc（看圖選擇題）選項
+
+**4. mockLLM.ts Prompt 更新**
+- 各科 Prompt 加入 image_mc 格式說明和圖形代碼列表
+- generateWithDeepSeek 函數支援 image_key 欄位
+- validTypes 擴展包含所有新題型
+
+**5. generate API 更新**
+- papers/[id]/generate/route.ts：inserts 加入 image_key
+- exam/generate/route.ts：inserts 加入 image_key
+
+**6. PDF 生成更新**
+- typedQuestions 類型加入 image_key
+- typeLabel 加入新題型標籤
+- tryEmbedSvg 函數：image_mc 題目渲染佔位框（PDFKit 不支援原生 SVG 渲染，以綠色框+圖形代碼標籤代替）
+
+### 偏差記錄
+1. **SVG 數量超出**：指令要求28個，實際生成36個，額外提供更完整的科目覆蓋。
+2. **PDF SVG 嵌入限制**：PDFKit 不支援原生 SVG 渲染，採用佔位框（綠色邊框+圖形代碼）代替實際圖形。若需真實圖形，需安裝 sharp 或 svg2pdf 等額外依賴。此偏差已記錄。
+3. **Supabase schema migration**：questions 表已新增 image_key TEXT 欄位，question_type CHECK 約束已更新包含 image_mc（在 Phase 7 執行中完成）。
+
+### TypeScript 檢查
+✅ tsc --noEmit 無錯誤
