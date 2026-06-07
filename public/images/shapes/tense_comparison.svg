@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300" style="background:white">
+  <!-- Title -->
+  <text x="200" y="28" font-family="Arial" font-size="15" text-anchor="middle" font-weight="bold" fill="black">英文時態對比</text>
+  <!-- Timeline -->
+  <line x1="30" y1="80" x2="370" y2="80" stroke="black" stroke-width="2.5"/>
+  <!-- Arrow at end -->
+  <polygon points="373,80 360,74 360,86" fill="black"/>
+  <!-- Past marker -->
+  <line x1="90" y1="72" x2="90" y2="88" stroke="black" stroke-width="2"/>
+  <text x="90" y="65" font-family="Arial" font-size="11" text-anchor="middle" fill="black">過去</text>
+  <!-- Present marker -->
+  <line x1="200" y1="68" x2="200" y2="92" stroke="black" stroke-width="3"/>
+  <circle cx="200" cy="80" r="6" fill="black"/>
+  <text x="200" y="62" font-family="Arial" font-size="11" text-anchor="middle" fill="black">現在</text>
+  <!-- Future marker -->
+  <line x1="310" y1="72" x2="310" y2="88" stroke="black" stroke-width="2"/>
+  <text x="310" y="65" font-family="Arial" font-size="11" text-anchor="middle" fill="black">將來</text>
+  <!-- Past tense box -->
+  <rect x="30" y="100" width="110" height="80" rx="6" fill="none" stroke="black" stroke-width="1.5"/>
+  <text x="85" y="120" font-family="Arial" font-size="12" text-anchor="middle" font-weight="bold" fill="black">Past Tense</text>
+  <text x="85" y="138" font-family="Arial" font-size="11" text-anchor="middle" fill="black">過去式</text>
+  <text x="85" y="158" font-family="Arial" font-size="11" text-anchor="middle" fill="black">I walked.</text>
+  <text x="85" y="173" font-family="Arial" font-size="11" text-anchor="middle" fill="black">我走了。</text>
+  <!-- Present tense box -->
+  <rect x="145" y="100" width="110" height="80" rx="6" fill="none" stroke="black" stroke-width="2"/>
+  <text x="200" y="120" font-family="Arial" font-size="12" text-anchor="middle" font-weight="bold" fill="black">Present Tense</text>
+  <text x="200" y="138" font-family="Arial" font-size="11" text-anchor="middle" fill="black">現在式</text>
+  <text x="200" y="158" font-family="Arial" font-size="11" text-anchor="middle" fill="black">I walk.</text>
+  <text x="200" y="173" font-family="Arial" font-size="11" text-anchor="middle" fill="black">我走路。</text>
+  <!-- Future tense box -->
+  <rect x="260" y="100" width="110" height="80" rx="6" fill="none" stroke="black" stroke-width="1.5"/>
+  <text x="315" y="120" font-family="Arial" font-size="12" text-anchor="middle" font-weight="bold" fill="black">Future Tense</text>
+  <text x="315" y="138" font-family="Arial" font-size="11" text-anchor="middle" fill="black">將來式</text>
+  <text x="315" y="158" font-family="Arial" font-size="11" text-anchor="middle" fill="black">I will walk.</text>
+  <text x="315" y="173" font-family="Arial" font-size="11" text-anchor="middle" fill="black">我將會走。</text>
+  <!-- Key words -->
+  <rect x="30" y="200" width="340" height="70" rx="6" fill="none" stroke="black" stroke-width="1"/>
+  <text x="200" y="218" font-family="Arial" font-size="12" text-anchor="middle" font-weight="bold" fill="black">關鍵詞提示</text>
+  <text x="200" y="236" font-family="Arial" font-size="11" text-anchor="middle" fill="black">過去：yesterday, last week, ago</text>
+  <text x="200" y="252" font-family="Arial" font-size="11" text-anchor="middle" fill="black">現在：now, today, always</text>
+  <text x="200" y="268" font-family="Arial" font-size="11" text-anchor="middle" fill="black">將來：tomorrow, next week, will</text>
+</svg>

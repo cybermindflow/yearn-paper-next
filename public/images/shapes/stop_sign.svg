@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300" style="background:white">
+  <!-- Octagon stop sign -->
+  <polygon points="145,60 255,60 310,115 310,185 255,240 145,240 90,185 90,115" fill="none" stroke="black" stroke-width="3"/>
+  <!-- Inner octagon border -->
+  <polygon points="152,72 248,72 298,122 298,178 248,228 152,228 102,178 102,122" fill="none" stroke="black" stroke-width="1.5"/>
+  <!-- STOP text -->
+  <text x="200" y="155" font-family="Arial" font-size="40" text-anchor="middle" font-weight="bold" fill="black">STOP</text>
+  <!-- Chinese text -->
+  <text x="200" y="195" font-family="Arial" font-size="20" text-anchor="middle" fill="black">停止</text>
+  <!-- Pole -->
+  <line x1="200" y1="242" x2="200" y2="285" stroke="black" stroke-width="4"/>
+  <rect x="170" y="282" width="60" height="10" rx="3" fill="none" stroke="black" stroke-width="2"/>
+</svg>

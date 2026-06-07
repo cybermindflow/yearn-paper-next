@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300" style="background:white">
+  <!-- Right triangle: bottom-left corner is the right angle -->
+  <polygon points="60,240 300,240 60,80" fill="none" stroke="black" stroke-width="2.5"/>
+  <!-- Right angle marker at bottom-left -->
+  <polyline points="60,220 80,220 80,240" fill="none" stroke="black" stroke-width="2"/>
+  <!-- Labels -->
+  <text x="160" y="270" font-family="Arial" font-size="14" text-anchor="middle" fill="black">底邊</text>
+  <text x="30" y="165" font-family="Arial" font-size="14" text-anchor="middle" fill="black">直角邊</text>
+  <text x="200" y="150" font-family="Arial" font-size="14" text-anchor="middle" fill="black" transform="rotate(-50,200,150)">斜邊</text>
+  <text x="55" y="255" font-family="Arial" font-size="12" text-anchor="middle" fill="black">90°</text>
+</svg>

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300" style="background:white">
+  <!-- Title -->
+  <text x="200" y="28" font-family="Arial" font-size="15" text-anchor="middle" font-weight="bold" fill="black">修辭手法：比喻</text>
+  <!-- Simile box (top) -->
+  <rect x="30" y="45" width="340" height="70" rx="8" fill="none" stroke="black" stroke-width="2"/>
+  <text x="200" y="68" font-family="Arial" font-size="13" text-anchor="middle" font-weight="bold" fill="black">明喻 Simile</text>
+  <text x="200" y="90" font-family="Arial" font-size="13" text-anchor="middle" fill="black">用「像」、「如」、「好比」來比較</text>
+  <text x="200" y="108" font-family="Arial" font-size="12" text-anchor="middle" fill="black">例：她的笑容像陽光一樣燦爛。</text>
+  <!-- Arrow -->
+  <line x1="200" y1="115" x2="200" y2="130" stroke="black" stroke-width="1.5"/>
+  <polygon points="200,133 194,123 206,123" fill="black"/>
+  <!-- Metaphor box (middle) -->
+  <rect x="30" y="133" width="340" height="70" rx="8" fill="none" stroke="black" stroke-width="2"/>
+  <text x="200" y="156" font-family="Arial" font-size="13" text-anchor="middle" font-weight="bold" fill="black">暗喻 Metaphor</text>
+  <text x="200" y="178" font-family="Arial" font-size="13" text-anchor="middle" fill="black">直接說「是」，不用比喻詞</text>
+  <text x="200" y="196" font-family="Arial" font-size="12" text-anchor="middle" fill="black">例：她的笑容是一縷陽光。</text>
+  <!-- Comparison diagram -->
+  <rect x="50" y="225" width="130" height="50" rx="6" fill="none" stroke="black" stroke-width="1.5"/>
+  <text x="115" y="248" font-family="Arial" font-size="12" text-anchor="middle" fill="black">本體（被比的）</text>
+  <text x="115" y="265" font-family="Arial" font-size="11" text-anchor="middle" fill="black">例：她的笑容</text>
+  <line x1="180" y1="250" x2="220" y2="250" stroke="black" stroke-width="2"/>
+  <polygon points="223,250 210,244 210,256" fill="black"/>
+  <text x="200" y="245" font-family="Arial" font-size="11" text-anchor="middle" fill="black">像/是</text>
+  <rect x="220" y="225" width="130" height="50" rx="6" fill="none" stroke="black" stroke-width="1.5"/>
+  <text x="285" y="248" font-family="Arial" font-size="12" text-anchor="middle" fill="black">喻體（用來比的）</text>
+  <text x="285" y="265" font-family="Arial" font-size="11" text-anchor="middle" fill="black">例：陽光</text>
+</svg>

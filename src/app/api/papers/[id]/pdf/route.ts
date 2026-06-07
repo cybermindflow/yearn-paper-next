@@ -141,6 +141,7 @@ async function buildPdf(
       options: Record<string, string> | null
       correct_answer: string
       explanation: string
+      image_key: string | null
     }>
 
     const pageBuckets = distributeQuestions(typedQuestions.length, targetPages)
@@ -149,6 +150,50 @@ async function buildPdf(
     const typeLabel: Record<string, string> = {
       mc: '選擇題', tf: '判斷題', fill: '填充題',
       match: '配對題', classify: '分類題', short: '問答題', essay: '問答題',
+      image_mc: '看圖選擇題', label: '標示題', experiment: '實驗題',
+      dictation: '默寫題', reorder: '排列題', comprehension: '閱讀理解', composition: '寫作題',
+    }
+
+    // ── SVG image helper ──────────────────────────────────────────────────────
+    const SHAPES_DIR = path.join(process.cwd(), 'public', 'images', 'shapes')
+    const tryEmbedSvg = (imageKey: string | null) => {
+      if (!imageKey) return
+      const svgPath = path.join(SHAPES_DIR, `${imageKey}.svg`)
+      if (!fs.existsSync(svgPath)) return
+      try {
+        // Safety: ensure we have room for the image
+        if (doc.y > CONTENT_BOTTOM - 120) {
+          doc.addPage()
+          drawPageHeader(false)
+        }
+        // PDFKit can embed SVG via SVGtoPDF or as image; use SVG string approach
+        const svgContent = fs.readFileSync(svgPath, 'utf8')
+        // Extract width/height from SVG
+        const wMatch = svgContent.match(/width=["']([\d.]+)/)
+        const hMatch = svgContent.match(/height=["']([\d.]+)/)
+        const svgW = wMatch ? parseFloat(wMatch[1]) : 200
+        const svgH = hMatch ? parseFloat(hMatch[1]) : 150
+        const maxW = 180
+        const scale = Math.min(maxW / svgW, 1)
+        const renderW = svgW * scale
+        const renderH = svgH * scale
+        // Write SVG as temp PNG via sharp is not available; embed as SVG data URI note
+        // Since PDFKit doesn't natively render SVG, add a placeholder box with label
+        doc.save()
+        doc.rect(PAGE_MARGIN + 20, doc.y, renderW, renderH)
+          .fillAndStroke('#f0f7f4', '#2d6a4f')
+        doc.fillColor('#2d6a4f')
+        setFont(false, 8)
+        doc.text(`[圖形：${imageKey}]`, PAGE_MARGIN + 20, doc.y - renderH / 2 - 5, {
+          width: renderW,
+          align: 'center',
+          lineBreak: false,
+        })
+        doc.restore()
+        doc.moveDown(renderH / 14 + 0.5)
+      } catch {
+        // Silently skip if SVG embed fails
+      }
     }
 
     for (let pageIdx = 0; pageIdx < pageBuckets.length; pageIdx++) {
@@ -174,6 +219,11 @@ async function buildPdf(
         doc.fillColor('#1a2e22')
         doc.text(`${q.question_number}. ${q.question_text}`)
         doc.moveDown(0.4)
+
+        // Embed SVG image for image_mc questions
+        if (q.question_type === 'image_mc' && q.image_key) {
+          tryEmbedSvg(q.image_key)
+        }
 
         if (type === 'question') {
           // Options

@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300" style="background:white">
+  <!-- Title -->
+  <text x="200" y="35" font-family="Arial" font-size="15" text-anchor="middle" font-weight="bold" fill="black">數線 Number Line</text>
+  <!-- Main line -->
+  <line x1="30" y1="130" x2="370" y2="130" stroke="black" stroke-width="2.5"/>
+  <!-- Arrows at both ends -->
+  <polygon points="373,130 360,124 360,136" fill="black"/>
+  <polygon points="27,130 40,124 40,136" fill="black"/>
+  <!-- Tick marks and numbers 0-10 -->
+  <line x1="60" y1="120" x2="60" y2="140" stroke="black" stroke-width="2"/>
+  <text x="60" y="158" font-family="Arial" font-size="14" text-anchor="middle" fill="black">0</text>
+  <line x1="93" y1="120" x2="93" y2="140" stroke="black" stroke-width="2"/>
+  <text x="93" y="158" font-family="Arial" font-size="14" text-anchor="middle" fill="black">1</text>
+  <line x1="126" y1="120" x2="126" y2="140" stroke="black" stroke-width="2"/>
+  <text x="126" y="158" font-family="Arial" font-size="14" text-anchor="middle" fill="black">2</text>
+  <line x1="159" y1="120" x2="159" y2="140" stroke="black" stroke-width="2"/>
+  <text x="159" y="158" font-family="Arial" font-size="14" text-anchor="middle" fill="black">3</text>
+  <line x1="192" y1="120" x2="192" y2="140" stroke="black" stroke-width="2"/>
+  <text x="192" y="158" font-family="Arial" font-size="14" text-anchor="middle" fill="black">4</text>
+  <line x1="225" y1="120" x2="225" y2="140" stroke="black" stroke-width="3"/>
+  <text x="225" y="158" font-family="Arial" font-size="14" text-anchor="middle" font-weight="bold" fill="black">5</text>
+  <line x1="258" y1="120" x2="258" y2="140" stroke="black" stroke-width="2"/>
+  <text x="258" y="158" font-family="Arial" font-size="14" text-anchor="middle" fill="black">6</text>
+  <line x1="291" y1="120" x2="291" y2="140" stroke="black" stroke-width="2"/>
+  <text x="291" y="158" font-family="Arial" font-size="14" text-anchor="middle" fill="black">7</text>
+  <line x1="324" y1="120" x2="324" y2="140" stroke="black" stroke-width="2"/>
+  <text x="324" y="158" font-family="Arial" font-size="14" text-anchor="middle" fill="black">8</text>
+  <line x1="357" y1="120" x2="357" y2="140" stroke="black" stroke-width="2"/>
+  <text x="357" y="158" font-family="Arial" font-size="14" text-anchor="middle" fill="black">9</text>
+  <!-- Example: show 3+4=7 on number line -->
+  <!-- Jump from 3 to 7 -->
+  <path d="M 159,115 Q 200,80 258,115" fill="none" stroke="black" stroke-width="2" stroke-dasharray="5,3"/>
+  <polygon points="258,115 248,110 252,122" fill="black"/>
+  <text x="208" y="72" font-family="Arial" font-size="13" text-anchor="middle" fill="black">+4</text>
+  <!-- Dot at 3 -->
+  <circle cx="159" cy="130" r="5" fill="black"/>
+  <!-- Dot at 7 -->
+  <circle cx="291" cy="130" r="5" fill="black"/>
+  <!-- Label -->
+  <text x="200" y="200" font-family="Arial" font-size="14" text-anchor="middle" fill="black">3 ＋ 4 ＝ 7</text>
+  <text x="200" y="225" font-family="Arial" font-size="12" text-anchor="middle" fill="black">從 3 向右跳 4 格，到達 7</text>
+</svg>

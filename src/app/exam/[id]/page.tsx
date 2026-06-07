@@ -1,5 +1,6 @@
 'use client'
 import { Suspense, useEffect, useState, useRef, useCallback } from 'react'
+import { QuestionImage } from '@/components/QuestionImage'
 import { useParams, useRouter } from 'next/navigation'
 import AppLayout from '@/components/AppLayout'
 import { toast } from 'sonner'
@@ -13,6 +14,7 @@ interface Question {
   options: Record<string, string> | null
   correct_answer: string
   explanation: string
+  image_key?: string | null
 }
 
 interface Paper {
@@ -500,6 +502,11 @@ function ExamContent() {
             <p className="text-base font-medium mb-4 leading-relaxed" style={{ color: 'var(--text)' }}>
               {q.question_number}. {q.question_text}
             </p>
+            {q.image_key && (
+              <div className="mb-4">
+                <QuestionImage imageKey={q.image_key} width={320} height={240} />
+              </div>
+            )}
 
             {/* MC options */}
             {q.question_type === 'mc' && q.options && (

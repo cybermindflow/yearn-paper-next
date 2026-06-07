@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300" style="background:white">
+  <!-- Train body -->
+  <rect x="30" y="90" width="340" height="120" rx="15" ry="15" fill="none" stroke="black" stroke-width="3"/>
+  <!-- Front cab -->
+  <rect x="30" y="90" width="60" height="120" rx="15" ry="15" fill="none" stroke="black" stroke-width="2"/>
+  <!-- Windows - car 1 -->
+  <rect x="50" y="110" width="30" height="30" rx="4" fill="none" stroke="black" stroke-width="2"/>
+  <!-- Windows - car 2 -->
+  <rect x="120" y="110" width="40" height="30" rx="4" fill="none" stroke="black" stroke-width="2"/>
+  <rect x="175" y="110" width="40" height="30" rx="4" fill="none" stroke="black" stroke-width="2"/>
+  <!-- Windows - car 3 -->
+  <rect x="240" y="110" width="40" height="30" rx="4" fill="none" stroke="black" stroke-width="2"/>
+  <rect x="295" y="110" width="40" height="30" rx="4" fill="none" stroke="black" stroke-width="2"/>
+  <!-- Doors -->
+  <rect x="105" y="155" width="25" height="55" rx="2" fill="none" stroke="black" stroke-width="2"/>
+  <rect x="210" y="155" width="25" height="55" rx="2" fill="none" stroke="black" stroke-width="2"/>
+  <rect x="315" y="155" width="25" height="55" rx="2" fill="none" stroke="black" stroke-width="2"/>
+  <!-- Wheels -->
+  <circle cx="80" cy="218" r="18" fill="none" stroke="black" stroke-width="2.5"/>
+  <circle cx="160" cy="218" r="18" fill="none" stroke="black" stroke-width="2.5"/>
+  <circle cx="240" cy="218" r="18" fill="none" stroke="black" stroke-width="2.5"/>
+  <circle cx="320" cy="218" r="18" fill="none" stroke="black" stroke-width="2.5"/>
+  <!-- Rail -->
+  <line x1="20" y1="236" x2="380" y2="236" stroke="black" stroke-width="3"/>
+  <!-- Headlight -->
+  <circle cx="38" cy="140" r="8" fill="none" stroke="black" stroke-width="2"/>
+  <!-- MTR label -->
+  <text x="200" y="145" font-family="Arial" font-size="18" text-anchor="middle" font-weight="bold" fill="black">港鐵 MTR</text>
+  <text x="200" y="270" font-family="Arial" font-size="13" text-anchor="middle" fill="black">港鐵列車側面圖</text>
+</svg>

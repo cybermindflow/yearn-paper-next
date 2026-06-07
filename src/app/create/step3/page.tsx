@@ -14,6 +14,7 @@ const GENERAL_QUESTION_TYPES = [
   { id: 'fill', label: '填充題', desc: '填入正確詞語' },
   { id: 'match', label: '配對題', desc: '將項目與描述配對' },
   { id: 'classify', label: '分類題', desc: '將項目分類' },
+  { id: 'image_mc', label: '看圖選擇題 🖼️', desc: '根據圖形選擇正確答案' },
   { id: 'short', label: '問答題（短）', desc: '2-3 句短答' },
   { id: 'essay', label: '問答題（長）', desc: '段落式作答' },
 ]
@@ -25,6 +26,7 @@ const CHINESE_QUESTION_TYPES = [
   { id: 'dictation', label: '默寫題', desc: '默寫詞語或句子' },
   { id: 'reorder', label: '排列句子', desc: '將句子排列成正確順序' },
   { id: 'comprehension', label: '閱讀理解', desc: '根據短文回答問題' },
+  { id: 'image_mc', label: '看圖選擇題 🖼️', desc: '根據圖形（筆順/句子結構）選擇正確答案' },
   { id: 'composition', label: '寫作題', desc: '短篇作文或看圖寫作' },
   { id: 'short', label: '問答題（短）', desc: '2-3 句短答' },
 ]
@@ -34,6 +36,7 @@ const SCIENCE_QUESTION_TYPES = [
   { id: 'mc', label: '選擇題', desc: '4 個選項，選一個正確答案' },
   { id: 'tf', label: '判斷題', desc: '判斷科學陳述是否正確' },
   { id: 'fill', label: '填充題', desc: '填入科學詞語或數值' },
+  { id: 'image_mc', label: '看圖選擇題 🖼️', desc: '根據科學圖形（電路/食物鏈/植物）選擇答案' },
   { id: 'label', label: '標示題', desc: '標示圖表中的結構或部分' },
   { id: 'experiment', label: '實驗設計題', desc: '設計或分析科學實驗' },
   { id: 'short', label: '問答題（短）', desc: '解釋科學現象（2-3 句）' },
@@ -46,6 +49,7 @@ const ENGLISH_QUESTION_TYPES = [
   { id: 'fill', label: 'Fill in the blanks', desc: 'Fill in the correct word or phrase' },
   { id: 'tf', label: 'True or False', desc: 'Decide if the statement is true or false' },
   { id: 'match', label: 'Matching', desc: 'Match words with their meanings or pictures' },
+  { id: 'image_mc', label: 'Picture-based MC 🖼️', desc: 'Look at a diagram and choose the correct answer' },
   { id: 'reorder', label: 'Rearrange words', desc: 'Rearrange words to form a correct sentence' },
   { id: 'comprehension', label: 'Reading Comprehension', desc: 'Read a short passage and answer questions' },
 ]

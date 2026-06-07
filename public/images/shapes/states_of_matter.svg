@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300" style="background:white">
+  <!-- Solid: ice block -->
+  <rect x="30" y="100" width="80" height="80" fill="none" stroke="black" stroke-width="2"/>
+  <!-- Grid pattern for solid -->
+  <line x1="30" y1="127" x2="110" y2="127" stroke="black" stroke-width="0.8"/>
+  <line x1="30" y1="153" x2="110" y2="153" stroke="black" stroke-width="0.8"/>
+  <line x1="57" y1="100" x2="57" y2="180" stroke="black" stroke-width="0.8"/>
+  <line x1="83" y1="100" x2="83" y2="180" stroke="black" stroke-width="0.8"/>
+  <text x="70" y="205" font-family="Arial" font-size="13" text-anchor="middle" fill="black">固體（冰）</text>
+
+  <!-- Arrow: melting -->
+  <line x1="120" y1="140" x2="155" y2="140" stroke="black" stroke-width="2"/>
+  <polygon points="158,140 148,134 148,146" fill="black"/>
+  <text x="137" y="130" font-family="Arial" font-size="10" text-anchor="middle" fill="black">熔化</text>
+
+  <!-- Liquid: water in cup -->
+  <rect x="165" y="100" width="70" height="80" fill="none" stroke="black" stroke-width="2"/>
+  <!-- Water level -->
+  <rect x="165" y="140" width="70" height="40" fill="none" stroke="black" stroke-width="1" stroke-dasharray="3,2"/>
+  <!-- Wavy line for liquid -->
+  <path d="M 168,155 Q 178,148 188,155 Q 198,162 208,155 Q 218,148 228,155" fill="none" stroke="black" stroke-width="1.5"/>
+  <text x="200" y="205" font-family="Arial" font-size="13" text-anchor="middle" fill="black">液體（水）</text>
+
+  <!-- Arrow: evaporation -->
+  <line x1="245" y1="140" x2="280" y2="140" stroke="black" stroke-width="2"/>
+  <polygon points="283,140 273,134 273,146" fill="black"/>
+  <text x="262" y="130" font-family="Arial" font-size="10" text-anchor="middle" fill="black">蒸發</text>
+
+  <!-- Gas: steam dots -->
+  <ellipse cx="330" cy="140" rx="45" ry="55" fill="none" stroke="black" stroke-width="2" stroke-dasharray="5,3"/>
+  <circle cx="315" cy="125" r="4" fill="black" opacity="0.5"/>
+  <circle cx="335" cy="115" r="3" fill="black" opacity="0.5"/>
+  <circle cx="350" cy="130" r="4" fill="black" opacity="0.5"/>
+  <circle cx="320" cy="145" r="3" fill="black" opacity="0.5"/>
+  <circle cx="340" cy="155" r="4" fill="black" opacity="0.5"/>
+  <circle cx="325" cy="160" r="3" fill="black" opacity="0.5"/>
+  <text x="330" y="205" font-family="Arial" font-size="13" text-anchor="middle" fill="black">氣體（蒸氣）</text>
+</svg>

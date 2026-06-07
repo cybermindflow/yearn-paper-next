@@ -147,6 +147,7 @@ export async function POST(req: NextRequest) {
     options: q.options,
     correct_answer: q.correct_answer,
     explanation: q.explanation,
+    image_key: q.image_key || null,
   }))
 
   const { error: insertError } = await supabaseAdmin.from('questions').insert(inserts)

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300" style="background:white">
+  <!-- Title -->
+  <text x="200" y="28" font-family="Arial" font-size="15" text-anchor="middle" font-weight="bold" fill="black">簡單機械：斜面</text>
+  <!-- Inclined plane triangle -->
+  <polygon points="60,230 360,230 360,90" fill="none" stroke="black" stroke-width="2.5"/>
+  <!-- Ground line -->
+  <line x1="40" y1="230" x2="380" y2="230" stroke="black" stroke-width="2"/>
+  <!-- Box on slope -->
+  <g transform="rotate(-25, 250, 165)">
+    <rect x="230" y="148" width="40" height="35" fill="none" stroke="black" stroke-width="2"/>
+    <text x="250" y="170" font-family="Arial" font-size="11" text-anchor="middle" fill="black">重物</text>
+  </g>
+  <!-- Arrow showing force up the slope -->
+  <line x1="215" y1="185" x2="190" y2="155" stroke="black" stroke-width="2"/>
+  <polygon points="188,152 196,165 202,158" fill="black"/>
+  <text x="175" y="148" font-family="Arial" font-size="11" text-anchor="middle" fill="black">推力</text>
+  <!-- Height label -->
+  <line x1="370" y1="90" x2="370" y2="230" stroke="black" stroke-width="1.5"/>
+  <line x1="363" y1="90" x2="377" y2="90" stroke="black" stroke-width="1.5"/>
+  <line x1="363" y1="230" x2="377" y2="230" stroke="black" stroke-width="1.5"/>
+  <text x="390" y="165" font-family="Arial" font-size="12" text-anchor="middle" fill="black">高度</text>
+  <!-- Length label -->
+  <line x1="60" y1="245" x2="360" y2="245" stroke="black" stroke-width="1.5"/>
+  <line x1="60" y1="238" x2="60" y2="252" stroke="black" stroke-width="1.5"/>
+  <line x1="360" y1="238" x2="360" y2="252" stroke="black" stroke-width="1.5"/>
+  <text x="210" y="265" font-family="Arial" font-size="12" text-anchor="middle" fill="black">斜面長度（越長越省力）</text>
+  <!-- Angle label -->
+  <path d="M 100,230 A 40,40 0 0,1 120,200" fill="none" stroke="black" stroke-width="1.5"/>
+  <text x="125" y="225" font-family="Arial" font-size="12" fill="black">θ</text>
+  <!-- Note -->
+  <text x="200" y="290" font-family="Arial" font-size="11" text-anchor="middle" fill="black">斜面越長，推力越小（省力簡單機械）</text>
+</svg>

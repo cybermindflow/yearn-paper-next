@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300" style="background:white">
+  <!-- Title -->
+  <text x="200" y="28" font-family="Arial" font-size="15" text-anchor="middle" font-weight="bold" fill="black">詞性 Parts of Speech</text>
+  <!-- Example sentence -->
+  <text x="200" y="60" font-family="Arial" font-size="16" text-anchor="middle" fill="black">The big dog runs fast.</text>
+  <!-- Brackets and labels -->
+  <!-- The -->
+  <line x1="68" y1="68" x2="68" y2="78" stroke="black" stroke-width="1.5"/>
+  <line x1="68" y1="78" x2="90" y2="78" stroke="black" stroke-width="1.5"/>
+  <line x1="90" y1="78" x2="90" y2="68" stroke="black" stroke-width="1.5"/>
+  <text x="79" y="93" font-family="Arial" font-size="10" text-anchor="middle" fill="black">冠詞</text>
+  <text x="79" y="106" font-family="Arial" font-size="10" text-anchor="middle" fill="black">Article</text>
+  <!-- big -->
+  <line x1="95" y1="68" x2="95" y2="78" stroke="black" stroke-width="1.5"/>
+  <line x1="95" y1="78" x2="120" y2="78" stroke="black" stroke-width="1.5"/>
+  <line x1="120" y1="78" x2="120" y2="68" stroke="black" stroke-width="1.5"/>
+  <text x="107" y="93" font-family="Arial" font-size="10" text-anchor="middle" fill="black">形容詞</text>
+  <text x="107" y="106" font-family="Arial" font-size="10" text-anchor="middle" fill="black">Adjective</text>
+  <!-- dog -->
+  <line x1="125" y1="68" x2="125" y2="78" stroke="black" stroke-width="1.5"/>
+  <line x1="125" y1="78" x2="155" y2="78" stroke="black" stroke-width="1.5"/>
+  <line x1="155" y1="78" x2="155" y2="68" stroke="black" stroke-width="1.5"/>
+  <text x="140" y="93" font-family="Arial" font-size="10" text-anchor="middle" fill="black">名詞</text>
+  <text x="140" y="106" font-family="Arial" font-size="10" text-anchor="middle" fill="black">Noun</text>
+  <!-- runs -->
+  <line x1="160" y1="68" x2="160" y2="78" stroke="black" stroke-width="1.5"/>
+  <line x1="160" y1="78" x2="200" y2="78" stroke="black" stroke-width="1.5"/>
+  <line x1="200" y1="78" x2="200" y2="68" stroke="black" stroke-width="1.5"/>
+  <text x="180" y="93" font-family="Arial" font-size="10" text-anchor="middle" fill="black">動詞</text>
+  <text x="180" y="106" font-family="Arial" font-size="10" text-anchor="middle" fill="black">Verb</text>
+  <!-- fast -->
+  <line x1="205" y1="68" x2="205" y2="78" stroke="black" stroke-width="1.5"/>
+  <line x1="205" y1="78" x2="240" y2="78" stroke="black" stroke-width="1.5"/>
+  <line x1="240" y1="78" x2="240" y2="68" stroke="black" stroke-width="1.5"/>
+  <text x="222" y="93" font-family="Arial" font-size="10" text-anchor="middle" fill="black">副詞</text>
+  <text x="222" y="106" font-family="Arial" font-size="10" text-anchor="middle" fill="black">Adverb</text>
+  <!-- Summary table -->
+  <rect x="30" y="125" width="340" height="145" rx="6" fill="none" stroke="black" stroke-width="1.5"/>
+  <text x="200" y="143" font-family="Arial" font-size="13" text-anchor="middle" font-weight="bold" fill="black">詞性速查表</text>
+  <line x1="30" y1="150" x2="370" y2="150" stroke="black" stroke-width="1"/>
+  <!-- Row 1 -->
+  <text x="100" y="168" font-family="Arial" font-size="12" text-anchor="middle" fill="black">名詞 Noun</text>
+  <text x="270" y="168" font-family="Arial" font-size="12" text-anchor="middle" fill="black">人/地方/事物</text>
+  <line x1="30" y1="175" x2="370" y2="175" stroke="black" stroke-width="0.8"/>
+  <!-- Row 2 -->
+  <text x="100" y="193" font-family="Arial" font-size="12" text-anchor="middle" fill="black">動詞 Verb</text>
+  <text x="270" y="193" font-family="Arial" font-size="12" text-anchor="middle" fill="black">動作/狀態</text>
+  <line x1="30" y1="200" x2="370" y2="200" stroke="black" stroke-width="0.8"/>
+  <!-- Row 3 -->
+  <text x="100" y="218" font-family="Arial" font-size="12" text-anchor="middle" fill="black">形容詞 Adjective</text>
+  <text x="270" y="218" font-family="Arial" font-size="12" text-anchor="middle" fill="black">描述名詞</text>
+  <line x1="30" y1="225" x2="370" y2="225" stroke="black" stroke-width="0.8"/>
+  <!-- Row 4 -->
+  <text x="100" y="243" font-family="Arial" font-size="12" text-anchor="middle" fill="black">副詞 Adverb</text>
+  <text x="270" y="243" font-family="Arial" font-size="12" text-anchor="middle" fill="black">描述動詞/形容詞</text>
+  <line x1="30" y1="250" x2="370" y2="250" stroke="black" stroke-width="0.8"/>
+  <!-- Row 5 -->
+  <text x="100" y="268" font-family="Arial" font-size="12" text-anchor="middle" fill="black">冠詞 Article</text>
+  <text x="270" y="268" font-family="Arial" font-size="12" text-anchor="middle" fill="black">a / an / the</text>
+  <!-- Vertical divider in table -->
+  <line x1="185" y1="125" x2="185" y2="270" stroke="black" stroke-width="1"/>
+</svg>

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300" style="background:white">
+  <!-- House at center-bottom -->
+  <rect x="160" y="170" width="80" height="60" fill="none" stroke="black" stroke-width="2"/>
+  <polygon points="160,170 200,130 240,170" fill="none" stroke="black" stroke-width="2"/>
+  <rect x="185" y="195" width="30" height="35" fill="none" stroke="black" stroke-width="1.5"/>
+  <text x="200" y="250" font-family="Arial" font-size="13" text-anchor="middle" fill="black">房子</text>
+  <!-- Tree to the north (above house) -->
+  <line x1="200" y1="50" x2="200" y2="90" stroke="black" stroke-width="2.5"/>
+  <circle cx="200" cy="40" r="22" fill="none" stroke="black" stroke-width="2"/>
+  <text x="200" y="110" font-family="Arial" font-size="13" text-anchor="middle" fill="black">樹</text>
+  <!-- Arrow from house to tree with label -->
+  <line x1="200" y1="128" x2="200" y2="115" stroke="black" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <polygon points="200,112 195,122 205,122" fill="black"/>
+  <text x="215" y="122" font-family="Arial" font-size="11" fill="black">北方</text>
+  <!-- Compass indicator -->
+  <text x="350" y="30" font-family="Arial" font-size="12" text-anchor="middle" fill="black">N↑</text>
+  <text x="200" y="290" font-family="Arial" font-size="13" text-anchor="middle" fill="black">樹在房子的北方</text>
+</svg>

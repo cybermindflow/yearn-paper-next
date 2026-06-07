@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300" style="background:white">
+  <!-- Road -->
+  <rect x="40" y="80" width="320" height="140" fill="none" stroke="black" stroke-width="2"/>
+  <!-- Zebra stripes (white stripes on road = thick black lines) -->
+  <rect x="100" y="80" width="25" height="140" fill="black" opacity="0.15" stroke="black" stroke-width="1"/>
+  <rect x="145" y="80" width="25" height="140" fill="black" opacity="0.15" stroke="black" stroke-width="1"/>
+  <rect x="190" y="80" width="25" height="140" fill="black" opacity="0.15" stroke="black" stroke-width="1"/>
+  <rect x="235" y="80" width="25" height="140" fill="black" opacity="0.15" stroke="black" stroke-width="1"/>
+  <rect x="280" y="80" width="25" height="140" fill="black" opacity="0.15" stroke="black" stroke-width="1"/>
+  <!-- Pavement lines -->
+  <line x1="40" y1="80" x2="360" y2="80" stroke="black" stroke-width="2.5"/>
+  <line x1="40" y1="220" x2="360" y2="220" stroke="black" stroke-width="2.5"/>
+  <!-- Pedestrian figure -->
+  <circle cx="200" cy="155" r="10" fill="none" stroke="black" stroke-width="2"/>
+  <line x1="200" y1="165" x2="200" y2="190" stroke="black" stroke-width="2"/>
+  <line x1="200" y1="175" x2="185" y2="185" stroke="black" stroke-width="2"/>
+  <line x1="200" y1="175" x2="215" y2="185" stroke="black" stroke-width="2"/>
+  <line x1="200" y1="190" x2="190" y2="210" stroke="black" stroke-width="2"/>
+  <line x1="200" y1="190" x2="210" y2="210" stroke="black" stroke-width="2"/>
+  <!-- Arrow showing direction -->
+  <line x1="200" y1="140" x2="200" y2="85" stroke="black" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <polygon points="200,82 194,95 206,95" fill="black"/>
+  <!-- Labels -->
+  <text x="200" y="255" font-family="Arial" font-size="14" text-anchor="middle" font-weight="bold" fill="black">行人過路處（斑馬線）</text>
+  <text x="55" y="155" font-family="Arial" font-size="11" fill="black">行車道</text>
+</svg>

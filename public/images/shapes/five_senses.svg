@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300" style="background:white">
+  <!-- Title -->
+  <text x="200" y="28" font-family="Arial" font-size="15" text-anchor="middle" font-weight="bold" fill="black">五感 Five Senses</text>
+  <!-- Eye (sight) - top left -->
+  <ellipse cx="70" cy="80" rx="35" ry="20" fill="none" stroke="black" stroke-width="2"/>
+  <circle cx="70" cy="80" r="12" fill="none" stroke="black" stroke-width="2"/>
+  <circle cx="70" cy="80" r="5" fill="black"/>
+  <text x="70" y="115" font-family="Arial" font-size="12" text-anchor="middle" fill="black">視覺（眼）</text>
+  <!-- Ear (hearing) - top right -->
+  <path d="M 320,55 Q 360,55 360,80 Q 360,105 340,105 Q 325,105 325,90 Q 325,78 335,75" fill="none" stroke="black" stroke-width="2.5"/>
+  <text x="340" y="125" font-family="Arial" font-size="12" text-anchor="middle" fill="black">聽覺（耳）</text>
+  <!-- Nose (smell) - center -->
+  <path d="M 185,155 Q 195,130 200,130 Q 205,130 215,155 Q 220,165 215,170 Q 205,175 195,170 Q 190,165 185,155 Z" fill="none" stroke="black" stroke-width="2"/>
+  <line x1="200" y1="130" x2="200" y2="115" stroke="black" stroke-width="2"/>
+  <text x="200" y="190" font-family="Arial" font-size="12" text-anchor="middle" fill="black">嗅覺（鼻）</text>
+  <!-- Mouth/tongue (taste) - bottom left -->
+  <path d="M 55,230 Q 70,218 85,230" fill="none" stroke="black" stroke-width="2"/>
+  <path d="M 55,230 Q 70,248 85,230" fill="none" stroke="black" stroke-width="2"/>
+  <ellipse cx="70" cy="238" rx="10" ry="6" fill="none" stroke="black" stroke-width="1.5"/>
+  <text x="70" y="265" font-family="Arial" font-size="12" text-anchor="middle" fill="black">味覺（舌）</text>
+  <!-- Hand (touch) - bottom right -->
+  <line x1="310" y1="265" x2="310" y2="225" stroke="black" stroke-width="3"/>
+  <line x1="295" y1="265" x2="295" y2="220" stroke="black" stroke-width="3"/>
+  <line x1="325" y1="265" x2="325" y2="220" stroke="black" stroke-width="3"/>
+  <line x1="340" y1="265" x2="340" y2="228" stroke="black" stroke-width="3"/>
+  <line x1="280" y1="265" x2="280" y2="235" stroke="black" stroke-width="3"/>
+  <path d="M 280,235 Q 275,225 280,218 Q 285,215 290,220" fill="none" stroke="black" stroke-width="2"/>
+  <path d="M 295,220 Q 295,210 302,208 Q 308,210 310,225" fill="none" stroke="black" stroke-width="2"/>
+  <path d="M 310,225 Q 310,212 317,210 Q 323,212 325,220" fill="none" stroke="black" stroke-width="2"/>
+  <path d="M 325,220 Q 325,215 332,213 Q 338,215 340,228" fill="none" stroke="black" stroke-width="2"/>
+  <text x="310" y="285" font-family="Arial" font-size="12" text-anchor="middle" fill="black">觸覺（手）</text>
+</svg>

@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300" style="background:white">
+  <!-- Title -->
+  <text x="200" y="28" font-family="Arial" font-size="15" text-anchor="middle" font-weight="bold" fill="black">乘法表（部分）</text>
+  <!-- Table grid: 5 cols x 5 rows, starting at x=60, y=45, cell=60x45 -->
+  <!-- Header row -->
+  <rect x="60" y="45" width="60" height="40" fill="none" stroke="black" stroke-width="2"/>
+  <text x="90" y="70" font-family="Arial" font-size="16" text-anchor="middle" font-weight="bold" fill="black">×</text>
+  <rect x="120" y="45" width="60" height="40" fill="none" stroke="black" stroke-width="2"/>
+  <text x="150" y="70" font-family="Arial" font-size="16" text-anchor="middle" font-weight="bold" fill="black">1</text>
+  <rect x="180" y="45" width="60" height="40" fill="none" stroke="black" stroke-width="2"/>
+  <text x="210" y="70" font-family="Arial" font-size="16" text-anchor="middle" font-weight="bold" fill="black">2</text>
+  <rect x="240" y="45" width="60" height="40" fill="none" stroke="black" stroke-width="2"/>
+  <text x="270" y="70" font-family="Arial" font-size="16" text-anchor="middle" font-weight="bold" fill="black">3</text>
+  <rect x="300" y="45" width="60" height="40" fill="none" stroke="black" stroke-width="2"/>
+  <text x="330" y="70" font-family="Arial" font-size="16" text-anchor="middle" font-weight="bold" fill="black">4</text>
+  <!-- Row 2 -->
+  <rect x="60" y="85" width="60" height="40" fill="none" stroke="black" stroke-width="2"/>
+  <text x="90" y="110" font-family="Arial" font-size="16" text-anchor="middle" font-weight="bold" fill="black">2</text>
+  <rect x="120" y="85" width="60" height="40" fill="none" stroke="black" stroke-width="1.5"/>
+  <text x="150" y="110" font-family="Arial" font-size="16" text-anchor="middle" fill="black">2</text>
+  <rect x="180" y="85" width="60" height="40" fill="none" stroke="black" stroke-width="1.5"/>
+  <text x="210" y="110" font-family="Arial" font-size="16" text-anchor="middle" fill="black">4</text>
+  <rect x="240" y="85" width="60" height="40" fill="none" stroke="black" stroke-width="1.5"/>
+  <text x="270" y="110" font-family="Arial" font-size="16" text-anchor="middle" fill="black">6</text>
+  <rect x="300" y="85" width="60" height="40" fill="none" stroke="black" stroke-width="1.5"/>
+  <text x="330" y="110" font-family="Arial" font-size="16" text-anchor="middle" fill="black">8</text>
+  <!-- Row 3 -->
+  <rect x="60" y="125" width="60" height="40" fill="none" stroke="black" stroke-width="2"/>
+  <text x="90" y="150" font-family="Arial" font-size="16" text-anchor="middle" font-weight="bold" fill="black">3</text>
+  <rect x="120" y="125" width="60" height="40" fill="none" stroke="black" stroke-width="1.5"/>
+  <text x="150" y="150" font-family="Arial" font-size="16" text-anchor="middle" fill="black">3</text>
+  <rect x="180" y="125" width="60" height="40" fill="none" stroke="black" stroke-width="1.5"/>
+  <text x="210" y="150" font-family="Arial" font-size="16" text-anchor="middle" fill="black">6</text>
+  <rect x="240" y="125" width="60" height="40" fill="none" stroke="black" stroke-width="1.5"/>
+  <text x="270" y="150" font-family="Arial" font-size="16" text-anchor="middle" fill="black">9</text>
+  <rect x="300" y="125" width="60" height="40" fill="none" stroke="black" stroke-width="1.5"/>
+  <text x="330" y="150" font-family="Arial" font-size="16" text-anchor="middle" fill="black">12</text>
+  <!-- Row 4 -->
+  <rect x="60" y="165" width="60" height="40" fill="none" stroke="black" stroke-width="2"/>
+  <text x="90" y="190" font-family="Arial" font-size="16" text-anchor="middle" font-weight="bold" fill="black">4</text>
+  <rect x="120" y="165" width="60" height="40" fill="none" stroke="black" stroke-width="1.5"/>
+  <text x="150" y="190" font-family="Arial" font-size="16" text-anchor="middle" fill="black">4</text>
+  <rect x="180" y="165" width="60" height="40" fill="none" stroke="black" stroke-width="1.5"/>
+  <text x="210" y="190" font-family="Arial" font-size="16" text-anchor="middle" fill="black">8</text>
+  <rect x="240" y="165" width="60" height="40" fill="none" stroke="black" stroke-width="1.5"/>
+  <text x="270" y="190" font-family="Arial" font-size="16" text-anchor="middle" fill="black">12</text>
+  <rect x="300" y="165" width="60" height="40" fill="none" stroke="black" stroke-width="1.5"/>
+  <text x="330" y="190" font-family="Arial" font-size="16" text-anchor="middle" fill="black">16</text>
+  <!-- Row 5 -->
+  <rect x="60" y="205" width="60" height="40" fill="none" stroke="black" stroke-width="2"/>
+  <text x="90" y="230" font-family="Arial" font-size="16" text-anchor="middle" font-weight="bold" fill="black">5</text>
+  <rect x="120" y="205" width="60" height="40" fill="none" stroke="black" stroke-width="1.5"/>
+  <text x="150" y="230" font-family="Arial" font-size="16" text-anchor="middle" fill="black">5</text>
+  <rect x="180" y="205" width="60" height="40" fill="none" stroke="black" stroke-width="1.5"/>
+  <text x="210" y="230" font-family="Arial" font-size="16" text-anchor="middle" fill="black">10</text>
+  <rect x="240" y="205" width="60" height="40" fill="none" stroke="black" stroke-width="1.5"/>
+  <text x="270" y="230" font-family="Arial" font-size="16" text-anchor="middle" fill="black">15</text>
+  <rect x="300" y="205" width="60" height="40" fill="none" stroke="black" stroke-width="1.5"/>
+  <text x="330" y="230" font-family="Arial" font-size="16" text-anchor="middle" fill="black">20</text>
+  <text x="200" y="275" font-family="Arial" font-size="11" text-anchor="middle" fill="black">橫行 × 直列 = 格內答案</text>
+</svg>

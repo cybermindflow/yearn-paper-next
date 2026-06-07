@@ -1,6 +1,7 @@
 'use client'
 
 import { Suspense, useEffect, useState, useRef } from 'react'
+import { QuestionImage } from '@/components/QuestionImage'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
 import { ChevronLeft, ChevronRight, Clock, CheckCircle, AlertCircle, Loader2, XCircle } from 'lucide-react'
@@ -9,6 +10,7 @@ interface Question {
   id: string; question_number: number; question_text: string
   question_type: string; options: Record<string, string> | null
   correct_answer: string; explanation: string
+  image_key?: string | null
 }
 
 interface QuestionResult {
@@ -314,6 +316,11 @@ function PracticeContent() {
           <p className="text-base font-medium leading-relaxed" style={{ color: 'var(--text)' }}>
             {q.question_number}. {q.question_text}
           </p>
+          {q.image_key && (
+            <div className="mt-3">
+              <QuestionImage imageKey={q.image_key} width={320} height={240} />
+            </div>
+          )}
         </div>
 
         {/* Answer area */}

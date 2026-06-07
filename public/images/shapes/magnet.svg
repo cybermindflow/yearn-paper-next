@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300" style="background:white">
+  <!-- Horseshoe magnet -->
+  <!-- Left arm -->
+  <rect x="80" y="60" width="50" height="120" rx="5" fill="none" stroke="black" stroke-width="3"/>
+  <!-- Right arm -->
+  <rect x="270" y="60" width="50" height="120" rx="5" fill="none" stroke="black" stroke-width="3"/>
+  <!-- Connecting arc (top) -->
+  <path d="M 80,80 Q 80,40 200,40 Q 320,40 320,80" fill="none" stroke="black" stroke-width="3"/>
+  <!-- N pole label -->
+  <text x="105" y="155" font-family="Arial" font-size="22" text-anchor="middle" font-weight="bold" fill="black">N</text>
+  <!-- S pole label -->
+  <text x="295" y="155" font-family="Arial" font-size="22" text-anchor="middle" font-weight="bold" fill="black">S</text>
+  <!-- Magnetic field lines (curved dashes between poles) -->
+  <path d="M 130,180 Q 200,230 270,180" fill="none" stroke="black" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <path d="M 130,185 Q 200,250 270,185" fill="none" stroke="black" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <path d="M 130,175 Q 200,210 270,175" fill="none" stroke="black" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <!-- Arrows on field lines -->
+  <polygon points="200,232 193,220 207,220" fill="black"/>
+  <!-- Labels -->
+  <text x="200" y="270" font-family="Arial" font-size="13" text-anchor="middle" fill="black">磁力線（N 極到 S 極）</text>
+  <text x="200" y="290" font-family="Arial" font-size="11" text-anchor="middle" fill="black">N 極與 S 極互相吸引</text>
+  <!-- Title -->
+  <text x="200" y="30" font-family="Arial" font-size="14" text-anchor="middle" font-weight="bold" fill="black">馬蹄形磁鐵</text>
+</svg>

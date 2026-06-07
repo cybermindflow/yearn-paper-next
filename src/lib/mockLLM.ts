@@ -7,6 +7,7 @@ export interface GeneratedQuestion {
   options: Record<string, string> | null
   correct_answer: string
   explanation: string
+  image_key?: string | null
 }
 
 export interface GenerateParams {
@@ -31,16 +32,18 @@ const QUESTION_TYPE_LABELS: Record<string, string> = {
   composition: '寫作題',
   label: '標示題',
   experiment: '實驗設計題',
+  image_mc: '看圖選擇題',
 }
 
 // ── DeepSeek API types ────────────────────────────────────────────────────────
 
 interface DeepSeekQuestion {
-  type: 'mc' | 'tf' | 'short'
+  type: 'mc' | 'tf' | 'short' | 'image_mc'
   question_text: string
   options?: string[]
   correct_answer: string
   explanation: string
+  image_key?: string
 }
 
 interface DeepSeekResponse {
@@ -80,6 +83,7 @@ function buildMathSystemPrompt(
 - 填充題（fill）：答案必須是具體數字或單位，不得是模糊表述
 - 問答題（short）：必須包含完整的計算步驟
 - 判斷題（tf）：陳述必須清晰，答案為「對」或「錯」
+- 看圖選擇題（image_mc）：題目文字描述圖形，並在 image_key 欄位填入對應圖形代碼（如 right_triangle、clock、number_line、cuboid、angle_types 等），4 個選項
 - 所有數字必須經過驗算，確保算術正確
 
 【輸出格式】
@@ -102,6 +106,16 @@ function buildMathSystemPrompt(
       "question_text": "題目文字",
       "correct_answer": "答案",
       "explanation": "解釋"
+    },
+    {
+      "type": "image_mc",
+      "level": "L1",
+      "knowledge_point_id": "M3_04_L1",
+      "question_text": "觀察右圖，這個圖形有多少條邊？",
+      "image_key": "right_triangle",
+      "options": ["A. 2", "B. 3", "C. 4", "D. 5"],
+      "correct_answer": "B",
+      "explanation": "直角三角形有 3 條邊"
     }
   ]
 }
@@ -159,6 +173,7 @@ function buildChineseSystemPrompt(
 - comprehension：閱讀理解（提供短文，然後出 2-3 道問題）
 - composition：寫作題（提供題目或圖片描述，學生寫短文）
 - short：問答題（根據語文知識回答）
+- image_mc：看圖選擇題（題目描述圖形，image_key 填入對應代碼，如 stroke_order、sentence_structure、metaphor_simile）
 
 【輸出格式】
 請嚴格按照以下 JSON 格式輸出（只輸出 JSON，不要任何其他文字）：
@@ -234,6 +249,7 @@ function buildScienceSystemPrompt(
 - experiment：實驗設計題（描述實驗情境，學生分析或設計實驗步驟）
 - short：問答題（解釋科學現象，2-3 句）
 - essay：問答題（深入分析科學概念，段落式作答）
+- image_mc：看圖選擇題（題目描述圖形，image_key 填入對應代碼，如 plant_structure、simple_circuit、water_cycle、states_of_matter、magnet）
 
 【輸出格式】
 請嚴格按照以下 JSON 格式輸出（只輸出 JSON，不要任何其他文字）：
@@ -301,6 +317,7 @@ function buildEnglishSystemPrompt(
 - match: Matching (match words with meanings, pictures, or categories)
 - reorder: Rearrange words (rearrange scrambled words to form a correct sentence)
 - comprehension: Reading Comprehension (provide a short passage 80-120 words, then ask 2-3 questions)
+- image_mc: Picture-based Multiple Choice (describe the image in question_text, set image_key to the image code such as alphabet_case, tense_comparison, parts_of_speech, paragraph_structure)
 
 [OUTPUT FORMAT]
 Output ONLY valid JSON in the following format (no other text):
@@ -452,7 +469,7 @@ function validateDeepSeekResponse(
     errors.push(`題目數量不足：期望 ${expectedCount}，實際 ${questions.length}`)
   }
 
-  const validTypes = new Set(['mc', 'tf', 'short', 'fill', 'essay'])
+  const validTypes = new Set(['mc', 'tf', 'short', 'fill', 'essay', 'image_mc', 'label', 'experiment', 'dictation', 'reorder', 'comprehension', 'composition'])
   const allowedTypes = new Set(questionTypes.flatMap(t => (t === 'essay' ? ['short', 'essay'] : [t])))
 
   for (let i = 0; i < questions.length; i++) {
@@ -629,7 +646,7 @@ async function generateWithDeepSeek(params: GenerateParams): Promise<GeneratedQu
       .map((q, idx) => {
         let options: Record<string, string> | null = null
 
-        if (q.type === 'mc' && Array.isArray(q.options)) {
+        if ((q.type === 'mc' || q.type === 'image_mc') && Array.isArray(q.options)) {
           options = {}
           for (const opt of q.options) {
             const key = opt.charAt(0) // 'A', 'B', 'C', 'D'
@@ -647,6 +664,7 @@ async function generateWithDeepSeek(params: GenerateParams): Promise<GeneratedQu
           options,
           correct_answer: q.correct_answer,
           explanation: q.explanation,
+          image_key: q.image_key || null,
         }
       })
 

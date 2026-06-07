@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300" style="background:white">
+  <rect x="60" y="90" width="280" height="120" fill="none" stroke="black" stroke-width="2.5"/>
+  <!-- Right angle markers -->
+  <polyline points="60,110 80,110 80,90" fill="none" stroke="black" stroke-width="1.5"/>
+  <polyline points="320,90 320,110 340,110" fill="none" stroke="black" stroke-width="1.5"/>
+  <polyline points="340,190 320,190 320,210" fill="none" stroke="black" stroke-width="1.5"/>
+  <polyline points="80,210 80,190 60,190" fill="none" stroke="black" stroke-width="1.5"/>
+  <!-- Equal length marks on top/bottom -->
+  <line x1="190" y1="84" x2="210" y2="84" stroke="black" stroke-width="2"/>
+  <line x1="200" y1="78" x2="200" y2="90" stroke="black" stroke-width="2"/>
+  <line x1="190" y1="216" x2="210" y2="216" stroke="black" stroke-width="2"/>
+  <line x1="200" y1="210" x2="200" y2="222" stroke="black" stroke-width="2"/>
+  <!-- Equal length marks on sides -->
+  <line x1="54" y1="144" x2="54" y2="156" stroke="black" stroke-width="2"/>
+  <line x1="48" y1="150" x2="60" y2="150" stroke="black" stroke-width="2"/>
+  <line x1="346" y1="144" x2="346" y2="156" stroke="black" stroke-width="2"/>
+  <line x1="340" y1="150" x2="352" y2="150" stroke="black" stroke-width="2"/>
+  <!-- Label -->
+  <text x="200" y="280" font-family="Arial" font-size="16" text-anchor="middle" fill="black">長方形（對邊等長）</text>
+</svg>

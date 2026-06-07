@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300" style="background:white">
+  <!-- Traffic light housing -->
+  <rect x="155" y="30" width="90" height="220" rx="15" ry="15" fill="none" stroke="black" stroke-width="3"/>
+  <!-- Red light (top) -->
+  <circle cx="200" cy="80" r="28" fill="none" stroke="black" stroke-width="2.5"/>
+  <text x="200" y="86" font-family="Arial" font-size="13" text-anchor="middle" fill="black">紅</text>
+  <!-- Yellow light (middle) -->
+  <circle cx="200" cy="150" r="28" fill="none" stroke="black" stroke-width="2.5"/>
+  <text x="200" y="156" font-family="Arial" font-size="13" text-anchor="middle" fill="black">黃</text>
+  <!-- Green light (bottom) -->
+  <circle cx="200" cy="220" r="28" fill="none" stroke="black" stroke-width="2.5"/>
+  <text x="200" y="226" font-family="Arial" font-size="13" text-anchor="middle" fill="black">綠</text>
+  <!-- Pole -->
+  <line x1="200" y1="250" x2="200" y2="285" stroke="black" stroke-width="4"/>
+  <!-- Base -->
+  <rect x="170" y="282" width="60" height="10" rx="3" fill="none" stroke="black" stroke-width="2"/>
+  <!-- Labels on right -->
+  <text x="260" y="85" font-family="Arial" font-size="12" fill="black">停止</text>
+  <line x1="245" y1="80" x2="258" y2="80" stroke="black" stroke-width="1"/>
+  <text x="260" y="155" font-family="Arial" font-size="12" fill="black">注意</text>
+  <line x1="245" y1="150" x2="258" y2="150" stroke="black" stroke-width="1"/>
+  <text x="260" y="225" font-family="Arial" font-size="12" fill="black">前進</text>
+  <line x1="245" y1="220" x2="258" y2="220" stroke="black" stroke-width="1"/>
+</svg>

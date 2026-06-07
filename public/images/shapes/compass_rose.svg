@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300" style="background:white">
+  <!-- Circle -->
+  <circle cx="200" cy="150" r="100" fill="none" stroke="black" stroke-width="1.5"/>
+  <!-- North arrow -->
+  <line x1="200" y1="150" x2="200" y2="55" stroke="black" stroke-width="2"/>
+  <polygon points="200,45 193,65 207,65" fill="black"/>
+  <text x="200" y="35" font-family="Arial" font-size="15" text-anchor="middle" font-weight="bold" fill="black">N 北</text>
+  <!-- South arrow -->
+  <line x1="200" y1="150" x2="200" y2="245" stroke="black" stroke-width="2"/>
+  <polygon points="200,255 193,235 207,235" fill="black"/>
+  <text x="200" y="275" font-family="Arial" font-size="15" text-anchor="middle" font-weight="bold" fill="black">S 南</text>
+  <!-- East arrow -->
+  <line x1="200" y1="150" x2="295" y2="150" stroke="black" stroke-width="2"/>
+  <polygon points="305,150 285,143 285,157" fill="black"/>
+  <text x="330" y="155" font-family="Arial" font-size="15" text-anchor="middle" font-weight="bold" fill="black">E 東</text>
+  <!-- West arrow -->
+  <line x1="200" y1="150" x2="105" y2="150" stroke="black" stroke-width="2"/>
+  <polygon points="95,150 115,143 115,157" fill="black"/>
+  <text x="68" y="155" font-family="Arial" font-size="15" text-anchor="middle" font-weight="bold" fill="black">W 西</text>
+  <!-- Center dot -->
+  <circle cx="200" cy="150" r="4" fill="black"/>
+</svg>

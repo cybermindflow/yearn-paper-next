@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300" style="background:white">
+  <!-- New Territories (top area) -->
+  <path d="M 60,40 L 340,40 L 360,120 L 280,140 L 220,130 L 180,140 L 120,130 L 60,120 Z" fill="none" stroke="black" stroke-width="2"/>
+  <text x="200" y="95" font-family="Arial" font-size="14" text-anchor="middle" font-weight="bold" fill="black">新界</text>
+  <!-- Kowloon (middle strip) -->
+  <path d="M 140,140 L 260,140 L 260,175 L 140,175 Z" fill="none" stroke="black" stroke-width="2"/>
+  <text x="200" y="162" font-family="Arial" font-size="13" text-anchor="middle" fill="black">九龍</text>
+  <!-- Victoria Harbour (water) -->
+  <path d="M 140,175 L 260,175 L 265,195 L 135,195 Z" fill="none" stroke="black" stroke-width="1" stroke-dasharray="4,2"/>
+  <text x="200" y="188" font-family="Arial" font-size="10" text-anchor="middle" fill="black">維多利亞港</text>
+  <!-- Hong Kong Island (bottom) -->
+  <path d="M 110,200 Q 140,195 200,200 Q 260,205 290,200 L 295,230 Q 200,245 105,230 Z" fill="none" stroke="black" stroke-width="2"/>
+  <text x="200" y="222" font-family="Arial" font-size="13" text-anchor="middle" fill="black">香港島</text>
+  <!-- Compass -->
+  <text x="365" y="45" font-family="Arial" font-size="12" text-anchor="middle" fill="black">N</text>
+  <line x1="365" y1="48" x2="365" y2="62" stroke="black" stroke-width="1.5"/>
+  <polygon points="365,65 360,55 370,55" fill="black"/>
+  <!-- Title -->
+  <text x="200" y="280" font-family="Arial" font-size="14" text-anchor="middle" font-weight="bold" fill="black">香港地圖（簡圖）</text>
+</svg>
