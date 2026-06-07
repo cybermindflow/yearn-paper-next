@@ -25,6 +25,12 @@ const QUESTION_TYPE_LABELS: Record<string, string> = {
   classify: '分類題',
   short: '問答題',
   essay: '問答題',
+  dictation: '默寫題',
+  reorder: '排列句子',
+  comprehension: '閱讀理解',
+  composition: '寫作題',
+  label: '標示題',
+  experiment: '實驗設計題',
 }
 
 // ── DeepSeek API types ────────────────────────────────────────────────────────
@@ -119,6 +125,150 @@ ${knowledgeContent}
 ${previousQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n')}` : ''}`
 }
 
+function buildChineseSystemPrompt(
+  grade: string,
+  questionTypes: string[],
+  difficulty: number,
+  totalQuestions: number,
+  knowledgeContent: string,
+  previousQuestions?: string[]
+): string {
+  const typeLabels = questionTypes.map(t => QUESTION_TYPE_LABELS[t] || t).join('、')
+  const levelDesc = difficulty === 1
+    ? 'L1 基礎：詞語認識、簡單句子理解'
+    : difficulty === 2
+    ? 'L2 標準：段落理解、詞語運用'
+    : 'L3 挑戰：篇章分析、創意寫作'
+
+  return `你是一位香港小學中文科教育專家。請根據以下提供的知識點內容，為香港小學${grade}中文科學生生成練習題。
+
+【嚴格要求】
+1. 只使用下方「知識庫內容」中提供的知識點來生成題目。
+2. 題目必須嚴格對齊香港教育局《小學中文科課程指引》的學習目標。
+3. 題型：${typeLabels}
+4. 難度：${levelDesc}
+5. 生成 ${totalQuestions} 道題目
+6. 使用繁體中文
+7. 題目內容必須貼近香港學生的日常生活情境
+
+【中文科題型說明】
+- mc：選擇題（4 個選項，測試字詞理解或語法知識）
+- fill：填充題（填入正確詞語、標點或字詞）
+- dictation：默寫題（提供句子，學生默寫指定詞語）
+- reorder：排列句子（打亂順序的句子，學生重新排列）
+- comprehension：閱讀理解（提供短文，然後出 2-3 道問題）
+- composition：寫作題（提供題目或圖片描述，學生寫短文）
+- short：問答題（根據語文知識回答）
+
+【輸出格式】
+請嚴格按照以下 JSON 格式輸出（只輸出 JSON，不要任何其他文字）：
+{
+  "questions": [
+    {
+      "type": "mc",
+      "question_text": "題目文字",
+      "options": ["A. 選項一", "B. 選項二", "C. 選項三", "D. 選項四"],
+      "correct_answer": "A",
+      "explanation": "解釋為什麼這是正確答案"
+    },
+    {
+      "type": "dictation",
+      "question_text": "請默寫以下詞語：＿＿＿＿",
+      "correct_answer": "詞語答案",
+      "explanation": "解釋"
+    },
+    {
+      "type": "comprehension",
+      "question_text": "短文：...\n問題：...",
+      "correct_answer": "參考答案",
+      "explanation": "解釋"
+    }
+  ]
+}
+
+【知識庫內容】
+${knowledgeContent}
+
+【注意】
+- 只輸出 JSON，不要任何前缀或後綴
+- 選擇題的選項必須以 "A. "、"B. "、"C. "、"D. " 開頭
+- 每道題必須有 explanation
+- 閱讀理解題請在 question_text 中包含完整短文${previousQuestions && previousQuestions.length > 0 ? `
+
+【避免重複題目】
+以下是該學生最近 5 次練習中已出現過的題目列表（避免生成完全相同的題目）：
+${previousQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n')}` : ''}`
+}
+
+function buildScienceSystemPrompt(
+  grade: string,
+  questionTypes: string[],
+  difficulty: number,
+  totalQuestions: number,
+  knowledgeContent: string,
+  previousQuestions?: string[]
+): string {
+  const typeLabels = questionTypes.map(t => QUESTION_TYPE_LABELS[t] || t).join('、')
+  const levelDesc = difficulty === 1
+    ? 'L1 基礎：基本概念識別、簡單觀察'
+    : difficulty === 2
+    ? 'L2 標準：概念應用、實驗分析'
+    : 'L3 挑戰：跨概念推理、實驗設計'
+
+  return `你是一位香港小學科學科教育專家。請根據以下提供的知識點內容，為香港小學${grade}科學科學生生成練習題。
+
+【嚴格要求】
+1. 只使用下方「知識庫內容」中提供的知識點來生成題目。
+2. 題目必須嚴格對齊香港教育局《小學科學科課程指引》的學習目標。
+3. 題型：${typeLabels}
+4. 難度：${levelDesc}
+5. 生成 ${totalQuestions} 道題目
+6. 使用繁體中文
+7. 題目內容必須貼近香港學生的日常生活情境和科學探究精神
+
+【科學科題型說明】
+- mc：選擇題（4 個選項，測試科學概念理解）
+- tf：判斷題（判斷科學陳述是否正確，答案為「對」或「錯」）
+- fill：填充題（填入科學詞語、單位或數值）
+- label：標示題（描述圖表結構，學生填寫標籤名稱）
+- experiment：實驗設計題（描述實驗情境，學生分析或設計實驗步驟）
+- short：問答題（解釋科學現象，2-3 句）
+- essay：問答題（深入分析科學概念，段落式作答）
+
+【輸出格式】
+請嚴格按照以下 JSON 格式輸出（只輸出 JSON，不要任何其他文字）：
+{
+  "questions": [
+    {
+      "type": "mc",
+      "question_text": "題目文字",
+      "options": ["A. 選項一", "B. 選項二", "C. 選項三", "D. 選項四"],
+      "correct_answer": "A",
+      "explanation": "解釋科學原理"
+    },
+    {
+      "type": "experiment",
+      "question_text": "實驗情境描述...\n問題：...",
+      "correct_answer": "參考答案",
+      "explanation": "解釋實驗原理"
+    }
+  ]
+}
+
+【知識庫內容】
+${knowledgeContent}
+
+【注意】
+- 只輸出 JSON，不要任何前缀或後綴
+- 選擇題的選項必須以 "A. "、"B. "、"C. "、"D. " 開頭
+- 每道題必須有 explanation，說明科學原理
+- 所有科學事實必須準確，不得出現錯誤的科學概念${previousQuestions && previousQuestions.length > 0 ? `
+
+【避免重複題目】
+以下是該學生最近 5 次練習中已出現過的題目列表（避免生成完全相同的題目）：
+${previousQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n')}` : ''}`
+}
+
 function buildSystemPrompt(
   grade: string,
   subject: string,
@@ -131,6 +281,14 @@ function buildSystemPrompt(
   // Use math-specific prompt for 數學科
   if (subject === '數學科') {
     return buildMathSystemPrompt(grade, questionTypes, difficulty, totalQuestions, knowledgeContent, previousQuestions)
+  }
+  // Use Chinese-specific prompt for 中文科
+  if (subject === '中文科') {
+    return buildChineseSystemPrompt(grade, questionTypes, difficulty, totalQuestions, knowledgeContent, previousQuestions)
+  }
+  // Use Science-specific prompt for 科學科
+  if (subject === '科學科') {
+    return buildScienceSystemPrompt(grade, questionTypes, difficulty, totalQuestions, knowledgeContent, previousQuestions)
   }
 
   const typeLabels = questionTypes.map(t => QUESTION_TYPE_LABELS[t] || t).join('、')

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSessionFromRequest } from '@/lib/session'
 import { supabaseAdmin } from '@/lib/supabase'
 import { generateQuestions } from '@/lib/mockLLM'
-import { KNOWLEDGE_BASE, getKnowledgeByIds, KnowledgeChunk } from '@/lib/knowledgeBase'
+import { KNOWLEDGE_BASE, CHINESE_P3_KNOWLEDGE, SCIENCE_P3_KNOWLEDGE, getKnowledgeByIds, KnowledgeChunk } from '@/lib/knowledgeBase'
 
 // Helper: detect if an ID is a knowledge point base code (e.g. "M3_01") vs UUID
 function isBaseCode(id: string): boolean {
@@ -87,12 +87,44 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       applicable_question_types: row.applicable_question_types || ['mc', 'fill'],
       source: row.source || '香港教育局《小學數學科課程指引》',
     }))
+  } else if (paper.subject === '中文科') {
+    // For 中文科: use static Chinese knowledge base
+    if (selectedKnowledgeIds.length > 0) {
+      const allChinese = CHINESE_P3_KNOWLEDGE
+      knowledgeChunks = allChinese.filter(k => selectedKnowledgeIds.includes(k.id))
+      if (knowledgeChunks.length === 0) knowledgeChunks = allChinese
+    } else {
+      knowledgeChunks = CHINESE_P3_KNOWLEDGE
+    }
+    console.log(`[generate] 中文科: using ${knowledgeChunks.length} knowledge chunks`)
+  } else if (paper.subject === '科學科') {
+    // For 科學科: use static Science knowledge base
+    if (selectedKnowledgeIds.length > 0) {
+      const allScience = SCIENCE_P3_KNOWLEDGE
+      knowledgeChunks = allScience.filter(k => selectedKnowledgeIds.includes(k.id))
+      if (knowledgeChunks.length === 0) knowledgeChunks = allScience
+    } else {
+      knowledgeChunks = SCIENCE_P3_KNOWLEDGE
+    }
+    console.log(`[generate] 科學科: using ${knowledgeChunks.length} knowledge chunks`)
+  } else if (paper.subject === '人文科') {
+    // For 人文科: map to 常識科 knowledge base (Phase 5 design)
+    const gsKnowledge = KNOWLEDGE_BASE.filter(k => k.subject === '常識科')
+    if (selectedKnowledgeIds.length > 0) {
+      knowledgeChunks = gsKnowledge.filter(k => selectedKnowledgeIds.includes(k.id))
+      if (knowledgeChunks.length === 0) knowledgeChunks = gsKnowledge
+    } else {
+      knowledgeChunks = gsKnowledge
+    }
+    console.log(`[generate] 人文科 (映射常識科): using ${knowledgeChunks.length} knowledge chunks`)
   } else {
     // For 常識科 and others: use static knowledge base
+    const gsKnowledge = KNOWLEDGE_BASE.filter(k => k.subject === '常識科')
     if (selectedKnowledgeIds.length > 0) {
       knowledgeChunks = getKnowledgeByIds(selectedKnowledgeIds)
+      if (knowledgeChunks.length === 0) knowledgeChunks = gsKnowledge
     } else {
-      knowledgeChunks = KNOWLEDGE_BASE
+      knowledgeChunks = gsKnowledge
     }
   }
 

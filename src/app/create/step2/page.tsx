@@ -29,6 +29,15 @@ const LEVEL_LABELS: Record<number, { label: string; color: string; bg: string }>
   3: { label: 'L3 挑戰', color: '#dc2626', bg: '#fee2e2' },
 }
 
+// 科目對應的標題和範疇顏色
+const SUBJECT_CONFIG: Record<string, { title: string; color: string; pale: string }> = {
+  gs:  { title: '常識科', color: '#16a34a', pale: '#f0fdf4' },
+  ma:  { title: '數學科', color: '#2563eb', pale: '#eff6ff' },
+  ch:  { title: '中文科', color: '#dc2626', pale: '#fff1f2' },
+  hum: { title: '人文科（常識科知識庫）', color: '#0284c7', pale: '#f0f9ff' },
+  sci: { title: '科學科', color: '#7c3aed', pale: '#faf5ff' },
+}
+
 export default function Step2Page() {
   const router = useRouter()
   const [knowledge, setKnowledge] = useState<KnowledgeChunk[]>([])
@@ -50,10 +59,8 @@ export default function Step2Page() {
         setKnowledge(chunks)
         setSelected(new Set(chunks.map((k: KnowledgeChunk) => k.id)))
         // Expand all categories by default
-        if (subjectId === 'ma') {
-          const cats = new Set<string>(chunks.map((k: KnowledgeChunk) => k.category || k.topic))
-          setExpandedCategories(cats)
-        }
+        const cats = new Set<string>(chunks.map((k: KnowledgeChunk) => k.topic))
+        setExpandedCategories(cats)
       })
       .finally(() => setLoading(false))
   }, [])
@@ -83,7 +90,7 @@ export default function Step2Page() {
     setSelectedLevels(prev => {
       const next = new Set(prev)
       if (next.has(level)) {
-        if (next.size > 1) next.delete(level) // keep at least 1
+        if (next.size > 1) next.delete(level)
       } else {
         next.add(level)
       }
@@ -123,15 +130,11 @@ export default function Step2Page() {
     )
   }
 
-  const isMath = subject === 'ma'
+  const config = SUBJECT_CONFIG[subject] || { title: '知識點', color: 'var(--brand)', pale: 'var(--brand-pale)' }
 
-  // ── Math: group by category → subcategory, filter by level ──────────────────
-  if (isMath) {
-    // Filter by selected levels
+  // ── 數學科: group by topic → knowledge_point, filter by level ──────────────
+  if (subject === 'ma') {
     const filtered = knowledge.filter(k => selectedLevels.has(k.level ?? 1))
-
-    // Group: topic (category) → knowledge_point (subcategory) → items
-    // topic field: "數（Number）", "度量（Measures）", "圖形與空間（Shape and Space）"
     const categoryMap: Record<string, Record<string, KnowledgeChunk[]>> = {}
     for (const k of filtered) {
       const cat = k.topic || '其他'
@@ -140,7 +143,6 @@ export default function Step2Page() {
       if (!categoryMap[cat][sub]) categoryMap[cat][sub] = []
       categoryMap[cat][sub].push(k)
     }
-
     const categoryOrder = ['數（Number）', '度量（Measures）', '圖形與空間（Shape and Space）']
     const orderedCategories = [
       ...categoryOrder.filter(c => categoryMap[c]),
@@ -151,21 +153,17 @@ export default function Step2Page() {
       <AppLayout>
         <div className="max-w-2xl mx-auto fade-in">
           <StepIndicator steps={STEPS} current={2} />
-
           <div className="card">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h2 className="text-xl font-bold" style={{ color: 'var(--brand-dark)' }}>選擇知識點（數學科）</h2>
-                <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>
-                  已選 {selected.size} / {knowledge.length} 個知識點
-                </p>
+                <h2 className="text-xl font-bold" style={{ color: config.color }}>選擇知識點（{config.title}）</h2>
+                <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>已選 {selected.size} / {knowledge.length} 個知識點</p>
               </div>
               <div className="flex gap-2">
                 <button onClick={selectAll} className="btn-ghost text-xs">全選</button>
                 <button onClick={clearAll} className="btn-ghost text-xs">清除</button>
               </div>
             </div>
-
             {/* Level filter */}
             <div className="mb-5 p-3 rounded-xl" style={{ background: 'var(--surface)', border: '1.5px solid var(--border)' }}>
               <div className="text-xs font-semibold mb-2" style={{ color: 'var(--text-muted)' }}>篩選難度層級</div>
@@ -185,54 +183,33 @@ export default function Step2Page() {
                 })}
               </div>
             </div>
-
-            {/* Category groups */}
             {orderedCategories.map(cat => {
               const subgroups = categoryMap[cat]
               const allItems = Object.values(subgroups).flat()
               const isExpanded = expandedCategories.has(cat)
               const selectedInCat = allItems.filter(k => selected.has(k.id)).length
-
               return (
                 <div key={cat} className="mb-3">
-                  {/* Category header */}
-                  <button
-                    onClick={() => toggleCategory(cat)}
+                  <button onClick={() => toggleCategory(cat)}
                     className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all"
-                    style={{ background: 'var(--brand-pale)', border: '1.5px solid var(--brand)' }}>
+                    style={{ background: config.pale, border: `1.5px solid ${config.color}` }}>
                     <div className="flex items-center gap-2">
-                      {isExpanded ? <ChevronDown size={16} style={{ color: 'var(--brand)' }} /> : <ChevronRight size={16} style={{ color: 'var(--brand)' }} />}
-                      <span className="font-bold text-sm" style={{ color: 'var(--brand-dark)' }}>
-                        範疇：{cat}
-                      </span>
-                      <span className="text-xs" style={{ color: 'var(--brand)' }}>
-                        （已選 {selectedInCat}/{allItems.length}）
-                      </span>
+                      {isExpanded ? <ChevronDown size={16} style={{ color: config.color }} /> : <ChevronRight size={16} style={{ color: config.color }} />}
+                      <span className="font-bold text-sm" style={{ color: config.color }}>範疇：{cat}</span>
+                      <span className="text-xs" style={{ color: config.color }}>（已選 {selectedInCat}/{allItems.length}）</span>
                     </div>
                     <div className="flex gap-1.5">
-                      <button
-                        onClick={e => { e.stopPropagation(); selectCategoryAll(allItems) }}
-                        className="text-xs px-2 py-0.5 rounded-md"
-                        style={{ background: 'var(--brand)', color: '#fff' }}>
-                        全選
-                      </button>
-                      <button
-                        onClick={e => { e.stopPropagation(); clearCategoryAll(allItems) }}
-                        className="text-xs px-2 py-0.5 rounded-md"
-                        style={{ background: '#fff', color: 'var(--text-muted)', border: '1px solid var(--border)' }}>
-                        清除
-                      </button>
+                      <button onClick={e => { e.stopPropagation(); selectCategoryAll(allItems) }}
+                        className="text-xs px-2 py-0.5 rounded-md" style={{ background: config.color, color: '#fff' }}>全選</button>
+                      <button onClick={e => { e.stopPropagation(); clearCategoryAll(allItems) }}
+                        className="text-xs px-2 py-0.5 rounded-md" style={{ background: '#fff', color: 'var(--text-muted)', border: '1px solid var(--border)' }}>清除</button>
                     </div>
                   </button>
-
-                  {/* Subcategory items */}
                   {isExpanded && (
                     <div className="mt-2 ml-2">
                       {Object.entries(subgroups).map(([sub, items]) => (
                         <div key={sub} className="mb-3">
-                          <div className="text-xs font-semibold mb-1.5 px-1" style={{ color: 'var(--text-muted)' }}>
-                            {sub}
-                          </div>
+                          <div className="text-xs font-semibold mb-1.5 px-1" style={{ color: 'var(--text-muted)' }}>{sub}</div>
                           <div className="flex flex-col gap-1.5">
                             {items.map(k => {
                               const isSelected = selected.has(k.id)
@@ -240,26 +217,17 @@ export default function Step2Page() {
                               return (
                                 <button key={k.id} onClick={() => toggle(k.id)}
                                   className="flex items-start gap-3 p-3 rounded-xl text-left transition-all"
-                                  style={{
-                                    background: isSelected ? 'var(--brand-pale)' : 'var(--surface)',
-                                    border: `1.5px solid ${isSelected ? 'var(--brand)' : 'var(--border)'}`,
-                                  }}>
-                                  <div className="mt-0.5 flex-shrink-0" style={{ color: isSelected ? 'var(--brand)' : 'var(--border)' }}>
+                                  style={{ background: isSelected ? config.pale : 'var(--surface)', border: `1.5px solid ${isSelected ? config.color : 'var(--border)'}` }}>
+                                  <div className="mt-0.5 flex-shrink-0" style={{ color: isSelected ? config.color : 'var(--border)' }}>
                                     {isSelected ? <CheckSquare size={18} /> : <Square size={18} />}
                                   </div>
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 flex-wrap">
-                                      <span className="font-semibold text-sm" style={{ color: 'var(--text)' }}>
-                                        {k.knowledge_point}
-                                      </span>
+                                      <span className="font-semibold text-sm" style={{ color: 'var(--text)' }}>{k.knowledge_point}</span>
                                       <span className="text-xs px-1.5 py-0.5 rounded-full font-medium flex-shrink-0"
-                                        style={{ background: lvInfo.bg, color: lvInfo.color }}>
-                                        {lvInfo.label}
-                                      </span>
+                                        style={{ background: lvInfo.bg, color: lvInfo.color }}>{lvInfo.label}</span>
                                     </div>
-                                    <div className="text-xs mt-0.5 leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-                                      {k.learning_objective}
-                                    </div>
+                                    <div className="text-xs mt-0.5 leading-relaxed" style={{ color: 'var(--text-muted)' }}>{k.learning_objective}</div>
                                   </div>
                                 </button>
                               )
@@ -272,12 +240,9 @@ export default function Step2Page() {
                 </div>
               )
             })}
-
             <div className="flex justify-between mt-6">
               <button onClick={() => router.back()} className="btn-secondary px-6">← 上一步</button>
-              <button onClick={handleNext} disabled={selected.size === 0} className="btn-primary px-8">
-                下一步 →
-              </button>
+              <button onClick={handleNext} disabled={selected.size === 0} className="btn-primary px-8">下一步 →</button>
             </div>
           </div>
         </div>
@@ -285,26 +250,40 @@ export default function Step2Page() {
     )
   }
 
-  // ── 常識科: original flat list grouped by topic ──────────────────────────────
-  const grouped = knowledge.reduce<Record<string, KnowledgeChunk[]>>((acc, k) => {
-    const key = `${k.topic} · ${k.unit}`
-    if (!acc[key]) acc[key] = []
-    acc[key].push(k)
-    return acc
-  }, {})
+  // ── 中文科 / 科學科 / 常識科 / 人文科：group by topic → unit ─────────────────
+  // topic = 大範疇（聽/說/讀/寫 or 科學探究/物理科學 etc.）
+  // unit = 子範疇（語音辨識/聽力理解 etc.）
+  const topicMap: Record<string, Record<string, KnowledgeChunk[]>> = {}
+  for (const k of knowledge) {
+    const topic = k.topic || '其他'
+    const unit = k.unit || topic
+    if (!topicMap[topic]) topicMap[topic] = {}
+    if (!topicMap[topic][unit]) topicMap[topic][unit] = []
+    topicMap[topic][unit].push(k)
+  }
+
+  // 定義範疇排序
+  const topicOrderMap: Record<string, string[]> = {
+    ch:  ['聽', '說', '讀', '寫'],
+    sci: ['科學探究', '物理科學', '生物科學', '地球科學'],
+    gs:  ['健康與生活', '環境與生活', '理財與經濟', '社會與公民', '國家與我', '世界與我'],
+    hum: ['健康與生活', '環境與生活', '理財與經濟', '社會與公民', '國家與我', '世界與我'],
+  }
+  const topicOrder = topicOrderMap[subject] || []
+  const orderedTopics = [
+    ...topicOrder.filter(t => topicMap[t]),
+    ...Object.keys(topicMap).filter(t => !topicOrder.includes(t)),
+  ]
 
   return (
     <AppLayout>
       <div className="max-w-2xl mx-auto fade-in">
         <StepIndicator steps={STEPS} current={2} />
-
         <div className="card">
           <div className="flex items-start justify-between mb-4">
             <div>
-              <h2 className="text-xl font-bold" style={{ color: 'var(--brand-dark)' }}>選擇知識點</h2>
-              <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>
-                已選 {selected.size} / {knowledge.length} 個知識點
-              </p>
+              <h2 className="text-xl font-bold" style={{ color: config.color }}>選擇知識點（{config.title}）</h2>
+              <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>已選 {selected.size} / {knowledge.length} 個知識點</p>
             </div>
             <div className="flex gap-2">
               <button onClick={selectAll} className="btn-ghost text-xs">全選</button>
@@ -312,44 +291,80 @@ export default function Step2Page() {
             </div>
           </div>
 
-          {Object.entries(grouped).map(([groupLabel, items]) => (
-            <div key={groupLabel} className="mb-4">
-              <div className="text-xs font-semibold mb-2 px-1" style={{ color: 'var(--brand)' }}>
-                {groupLabel}
-              </div>
-              <div className="flex flex-col gap-1.5">
-                {items.map(k => {
-                  const isSelected = selected.has(k.id)
-                  return (
-                    <button key={k.id} onClick={() => toggle(k.id)}
-                      className="flex items-start gap-3 p-3 rounded-xl text-left transition-all"
-                      style={{
-                        background: isSelected ? 'var(--brand-pale)' : 'var(--surface)',
-                        border: `1.5px solid ${isSelected ? 'var(--brand)' : 'var(--border)'}`,
-                      }}>
-                      <div className="mt-0.5 flex-shrink-0" style={{ color: isSelected ? 'var(--brand)' : 'var(--border)' }}>
-                        {isSelected ? <CheckSquare size={18} /> : <Square size={18} />}
-                      </div>
-                      <div>
-                        <div className="font-semibold text-sm" style={{ color: 'var(--text)' }}>
-                          {k.knowledge_point}
-                        </div>
-                        <div className="text-xs mt-0.5 leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-                          {k.learning_objective}
-                        </div>
-                      </div>
-                    </button>
-                  )
-                })}
-              </div>
+          {/* 人文科映射提示 */}
+          {subject === 'hum' && (
+            <div className="mb-4 px-3 py-2 rounded-lg text-xs" style={{ background: '#f0f9ff', color: '#0284c7', border: '1px solid #bae6fd' }}>
+              💡 人文科使用常識科知識庫（六大範疇），完全兼容 2026/27 學年新課程框架。生成的練習卷將標記為「人文科」。
             </div>
-          ))}
+          )}
+
+          {orderedTopics.map(topic => {
+            const unitGroups = topicMap[topic]
+            const allItems = Object.values(unitGroups).flat()
+            const isExpanded = expandedCategories.has(topic)
+            const selectedInTopic = allItems.filter(k => selected.has(k.id)).length
+            const hasSubunits = Object.keys(unitGroups).some(u => u !== topic)
+
+            return (
+              <div key={topic} className="mb-3">
+                {/* Topic header */}
+                <button onClick={() => toggleCategory(topic)}
+                  className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all"
+                  style={{ background: config.pale, border: `1.5px solid ${config.color}` }}>
+                  <div className="flex items-center gap-2">
+                    {isExpanded ? <ChevronDown size={16} style={{ color: config.color }} /> : <ChevronRight size={16} style={{ color: config.color }} />}
+                    <span className="font-bold text-sm" style={{ color: config.color }}>
+                      {subject === 'ch' ? `${topic}（${['聽','說'].includes(topic) ? '聆聽/說話' : topic === '讀' ? '閱讀' : '寫作'}）` : `範疇：${topic}`}
+                    </span>
+                    <span className="text-xs" style={{ color: config.color }}>（已選 {selectedInTopic}/{allItems.length}）</span>
+                  </div>
+                  <div className="flex gap-1.5">
+                    <button onClick={e => { e.stopPropagation(); selectCategoryAll(allItems) }}
+                      className="text-xs px-2 py-0.5 rounded-md" style={{ background: config.color, color: '#fff' }}>全選</button>
+                    <button onClick={e => { e.stopPropagation(); clearCategoryAll(allItems) }}
+                      className="text-xs px-2 py-0.5 rounded-md" style={{ background: '#fff', color: 'var(--text-muted)', border: '1px solid var(--border)' }}>清除</button>
+                  </div>
+                </button>
+
+                {/* Unit groups */}
+                {isExpanded && (
+                  <div className="mt-2 ml-2">
+                    {Object.entries(unitGroups).map(([unit, items]) => (
+                      <div key={unit} className="mb-3">
+                        {hasSubunits && unit !== topic && (
+                          <div className="text-xs font-semibold mb-1.5 px-1" style={{ color: 'var(--text-muted)' }}>
+                            ▸ {unit}
+                          </div>
+                        )}
+                        <div className="flex flex-col gap-1.5">
+                          {items.map(k => {
+                            const isSelected = selected.has(k.id)
+                            return (
+                              <button key={k.id} onClick={() => toggle(k.id)}
+                                className="flex items-start gap-3 p-3 rounded-xl text-left transition-all"
+                                style={{ background: isSelected ? config.pale : 'var(--surface)', border: `1.5px solid ${isSelected ? config.color : 'var(--border)'}` }}>
+                                <div className="mt-0.5 flex-shrink-0" style={{ color: isSelected ? config.color : 'var(--border)' }}>
+                                  {isSelected ? <CheckSquare size={18} /> : <Square size={18} />}
+                                </div>
+                                <div>
+                                  <div className="font-semibold text-sm" style={{ color: 'var(--text)' }}>{k.knowledge_point}</div>
+                                  <div className="text-xs mt-0.5 leading-relaxed" style={{ color: 'var(--text-muted)' }}>{k.learning_objective}</div>
+                                </div>
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )
+          })}
 
           <div className="flex justify-between mt-6">
             <button onClick={() => router.back()} className="btn-secondary px-6">← 上一步</button>
-            <button onClick={handleNext} disabled={selected.size === 0} className="btn-primary px-8">
-              下一步 →
-            </button>
+            <button onClick={handleNext} disabled={selected.size === 0} className="btn-primary px-8">下一步 →</button>
           </div>
         </div>
       </div>
