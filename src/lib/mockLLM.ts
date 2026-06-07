@@ -657,14 +657,26 @@ async function generateWithDeepSeek(params: GenerateParams): Promise<GeneratedQu
           options = { A: '對', B: '錯' }
         }
 
+        // Validate image_key for image_mc: if key is missing or not in VALID_IMAGE_KEYS,
+        // downgrade to plain mc to avoid broken placeholder boxes
+        let finalType = q.type
+        let finalImageKey: string | null = q.image_key || null
+        if (q.type === 'image_mc') {
+          if (!finalImageKey || !VALID_IMAGE_KEYS.has(finalImageKey)) {
+            console.warn(`[DeepSeek] image_mc 第 ${idx + 1} 題 image_key 無效 ("${finalImageKey}")，降級為 mc`)
+            finalType = 'mc'
+            finalImageKey = null
+          }
+        }
+
         return {
           question_number: idx + 1,
           question_text: q.question_text,
-          question_type: q.type,
+          question_type: finalType,
           options,
           correct_answer: q.correct_answer,
           explanation: q.explanation,
-          image_key: q.image_key || null,
+          image_key: finalImageKey,
         }
       })
 

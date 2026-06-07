@@ -29,6 +29,24 @@ const LEVEL_LABELS: Record<number, { label: string; color: string; bg: string }>
   3: { label: 'L3 挑戰', color: '#dc2626', bg: '#fee2e2' },
 }
 
+// Math knowledge points that have validated image templates in mockLLM.ts
+// Keep in sync with MATH_IMAGE_TEMPLATES keywords in src/lib/mockLLM.ts
+const MATH_IMAGE_KEYWORDS: string[] = [
+  '時間', '時鐘',
+  '加法', '數線',
+  '平面圖形', '三角形', '直角',
+  '正方形', '周界',
+  '長方形', '長方體',
+  '圓形', '圓', '半徑',
+  '角', '角度',
+  '方向', '位置',
+  '乘法',
+]
+
+function hasMathImageTemplate(knowledgePoint: string): boolean {
+  return MATH_IMAGE_KEYWORDS.some(kw => knowledgePoint.includes(kw))
+}
+
 // 科目對應的標題和範疇顏色
 const SUBJECT_CONFIG: Record<string, { title: string; color: string; pale: string }> = {
   gs:  { title: '常識科', color: '#16a34a', pale: '#f0fdf4' },
@@ -225,6 +243,15 @@ export default function Step2Page() {
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 flex-wrap">
                                       <span className="font-semibold text-sm" style={{ color: 'var(--text)' }}>{k.knowledge_point}</span>
+                                      {hasMathImageTemplate(k.knowledge_point) && (
+                                        <span
+                                          title="此知識點支援看圖題"
+                                          className="text-xs flex-shrink-0"
+                                          style={{ fontSize: '14px', lineHeight: 1 }}
+                                        >
+                                          🖼️
+                                        </span>
+                                      )}
                                       <span className="text-xs px-1.5 py-0.5 rounded-full font-medium flex-shrink-0"
                                         style={{ background: lvInfo.bg, color: lvInfo.color }}>{lvInfo.label}</span>
                                     </div>
