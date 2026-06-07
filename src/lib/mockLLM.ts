@@ -759,6 +759,41 @@ function generateClassifyQuestion(chunk: KnowledgeChunk, num: number): Generated
   }
 }
 
+// Map subject to relevant image keys for mock image_mc generation
+const SUBJECT_IMAGE_KEYS: Record<string, string[]> = {
+  '數學科': ['right_triangle', 'square', 'rectangle', 'circle', 'clock', 'number_line', 'cuboid', 'angle_types', 'compass_rose', 'multiplication_table'],
+  '科學科': ['plant_structure', 'simple_circuit', 'water_cycle', 'states_of_matter', 'simple_food_chain', 'force_push_pull', 'magnet', 'five_senses', 'light_and_shadow', 'inclined_plane'],
+  '常識科': ['traffic_light', 'stop_sign', 'zebra_crossing', 'hk_simple_map', 'community_facilities', 'mtr_train', 'weather_symbols', 'family_tree'],
+  '中文科': ['stroke_order', 'sentence_structure', 'metaphor_simile'],
+  '英文科': ['alphabet_case', 'tense_comparison', 'paragraph_structure', 'parts_of_speech'],
+}
+const DEFAULT_IMAGE_KEYS = ['right_triangle', 'clock', 'circle', 'square', 'number_line']
+
+function getImageKeyForChunk(chunk: KnowledgeChunk): string {
+  const keys = SUBJECT_IMAGE_KEYS[chunk.subject] || DEFAULT_IMAGE_KEYS
+  // Pick a deterministic key based on knowledge_point length
+  const idx = chunk.knowledge_point.length % keys.length
+  return keys[idx]
+}
+
+function generateImageMCQuestion(chunk: KnowledgeChunk, num: number): GeneratedQuestion {
+  const imageKey = getImageKeyForChunk(chunk)
+  return {
+    question_number: num,
+    question_text: `請觀察圖形，判斷它與「${chunk.knowledge_point}」的哪一項描述符合？`,
+    question_type: 'image_mc',
+    options: {
+      A: `圖形展示了${chunk.knowledge_point}的主要特徵`,
+      B: `圖形與${chunk.knowledge_point}完全無關`,
+      C: `圖形只適用於高年級學生`,
+      D: `圖形表示的是其他科目的內容`,
+    },
+    correct_answer: 'A',
+    explanation: `圖形展示了${chunk.knowledge_point}的相關內容。${chunk.learning_objective}`,
+    image_key: imageKey,
+  }
+}
+
 function generateOneQuestion(
   chunk: KnowledgeChunk,
   qType: string,
@@ -772,6 +807,7 @@ function generateOneQuestion(
     case 'short':
     case 'essay': return generateShortQuestion(chunk, num)
     case 'classify': return generateClassifyQuestion(chunk, num)
+    case 'image_mc': return generateImageMCQuestion(chunk, num)
     default: return generateMCQuestion(chunk, num)
   }
 }

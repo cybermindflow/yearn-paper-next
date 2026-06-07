@@ -1,7 +1,6 @@
 'use client';
 
-import React from 'react';
-import Image from 'next/image';
+import React, { useState } from 'react';
 
 // Mapping from image_key to SVG file path and description
 const IMAGE_MAP: Record<string, { path: string; alt: string }> = {
@@ -63,10 +62,11 @@ export function QuestionImage({
   width = 320,
   height = 240,
 }: QuestionImageProps) {
+  const [hasError, setHasError] = useState(false);
   const imageInfo = IMAGE_MAP[imageKey];
 
-  if (!imageInfo) {
-    // Graceful fallback: show placeholder box
+  // If no mapping found or load error, show placeholder
+  if (!imageInfo || hasError) {
     return (
       <div
         className={`border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50 ${className}`}
@@ -82,14 +82,19 @@ export function QuestionImage({
 
   return (
     <figure className={`flex flex-col items-center gap-2 ${className}`}>
-      <div className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
-        <Image
+      <div
+        className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm flex items-center justify-center"
+        style={{ maxWidth: width }}
+      >
+        {/* Use plain <img> instead of next/image to avoid SVG restrictions */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
           src={imageInfo.path}
           alt={imageInfo.alt}
           width={width}
           height={height}
-          className="object-contain"
-          unoptimized
+          style={{ maxWidth: '100%', height: 'auto', display: 'block' }}
+          onError={() => setHasError(true)}
         />
       </div>
       {caption && (
