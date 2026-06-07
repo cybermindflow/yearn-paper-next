@@ -1177,3 +1177,19 @@ if (selectedKnowledgeIds.some(isBaseCode)) {
 
 ### TypeScript 檢查
 ✅ tsc --noEmit 無錯誤
+
+## Phase 7 緊急修正 (2026-06-07)
+
+### 問題診斷
+用戶反映 image_mc 題型只顯示 "image_mc" 標籤，不顯示 SVG 圖形。
+
+**根本原因（雙重問題）：**
+1. `QuestionImage.tsx` 使用 `next/image` 組件，但 Next.js 預設不支援 SVG 渲染
+2. Mock LLM 的 `generateOneQuestion` 函數沒有 `image_mc` 分支，遇到 `image_mc` 走 `default` 分支生成普通 MC 題，且 `image_key` 為 `null`
+
+### 修正方案
+1. **QuestionImage.tsx**：改用普通 `<img>` HTML 標籤代替 `next/image`，加入 `onError` 回退佔位框
+2. **mockLLM.ts**：新增 `SUBJECT_IMAGE_KEYS` 映射、`getImageKeyForChunk()` 函數、`generateImageMCQuestion()` 函數，在 `generateOneQuestion` 中新增 `case 'image_mc'` 分支
+
+### Commit
+`8735e4d` — fix: SVG image rendering - use plain img tag, add mock image_mc generator with image_key
