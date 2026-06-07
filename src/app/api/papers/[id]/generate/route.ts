@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSessionFromRequest } from '@/lib/session'
 import { supabaseAdmin } from '@/lib/supabase'
 import { generateQuestions } from '@/lib/mockLLM'
-import { KNOWLEDGE_BASE, CHINESE_P3_KNOWLEDGE, SCIENCE_P3_KNOWLEDGE, getKnowledgeByIds, KnowledgeChunk } from '@/lib/knowledgeBase'
+import { KNOWLEDGE_BASE, CHINESE_P3_KNOWLEDGE, SCIENCE_P3_KNOWLEDGE, ENGLISH_P3_KNOWLEDGE, getKnowledgeByIds, KnowledgeChunk } from '@/lib/knowledgeBase'
 
 // Helper: detect if an ID is a knowledge point base code (e.g. "M3_01") vs UUID
 function isBaseCode(id: string): boolean {
@@ -107,6 +107,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       knowledgeChunks = SCIENCE_P3_KNOWLEDGE
     }
     console.log(`[generate] 科學科: using ${knowledgeChunks.length} knowledge chunks`)
+  } else if (paper.subject === '英文科') {
+    // For 英文科: use static English knowledge base
+    if (selectedKnowledgeIds.length > 0) {
+      const allEnglish = ENGLISH_P3_KNOWLEDGE
+      knowledgeChunks = allEnglish.filter(k => selectedKnowledgeIds.includes(k.id))
+      if (knowledgeChunks.length === 0) knowledgeChunks = allEnglish
+    } else {
+      knowledgeChunks = ENGLISH_P3_KNOWLEDGE
+    }
+    console.log(`[generate] 英文科: using ${knowledgeChunks.length} knowledge chunks`)
   } else if (paper.subject === '人文科') {
     // For 人文科: map to 常識科 knowledge base (Phase 5 design)
     const gsKnowledge = KNOWLEDGE_BASE.filter(k => k.subject === '常識科')

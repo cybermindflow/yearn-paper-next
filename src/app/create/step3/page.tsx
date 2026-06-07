@@ -40,6 +40,16 @@ const SCIENCE_QUESTION_TYPES = [
   { id: 'essay', label: '問答題（長）', desc: '深入分析科學概念' },
 ]
 
+// 英文科專屬題型
+const ENGLISH_QUESTION_TYPES = [
+  { id: 'mc', label: 'Multiple Choice', desc: '4 options, choose the correct answer' },
+  { id: 'fill', label: 'Fill in the blanks', desc: 'Fill in the correct word or phrase' },
+  { id: 'tf', label: 'True or False', desc: 'Decide if the statement is true or false' },
+  { id: 'match', label: 'Matching', desc: 'Match words with their meanings or pictures' },
+  { id: 'reorder', label: 'Rearrange words', desc: 'Rearrange words to form a correct sentence' },
+  { id: 'comprehension', label: 'Reading Comprehension', desc: 'Read a short passage and answer questions' },
+]
+
 // 科目對應題型和預設選擇
 const SUBJECT_TYPE_CONFIG: Record<string, {
   types: typeof GENERAL_QUESTION_TYPES
@@ -51,7 +61,7 @@ const SUBJECT_TYPE_CONFIG: Record<string, {
   ch:  { types: CHINESE_QUESTION_TYPES, defaults: ['mc', 'fill', 'comprehension'], color: '#dc2626' },
   hum: { types: GENERAL_QUESTION_TYPES, defaults: ['mc', 'tf'], color: '#0284c7' },
   sci: { types: SCIENCE_QUESTION_TYPES, defaults: ['mc', 'tf', 'fill'], color: '#7c3aed' },
-  en:  { types: GENERAL_QUESTION_TYPES, defaults: ['mc', 'fill'], color: '#6b7280' },
+  en:  { types: ENGLISH_QUESTION_TYPES, defaults: ['mc', 'fill', 'tf'], color: '#ea580c' },
 }
 
 const STEPS = [
@@ -196,6 +206,13 @@ export default function Step3Page() {
           {subject === 'sci' && (
             <div className="mb-4 px-3 py-2 rounded-lg text-xs" style={{ background: '#faf5ff', color: '#7c3aed', border: '1px solid #e9d5ff' }}>
               🧪 科學科題型包含標示題和實驗設計題，需配合圖表使用
+            </div>
+          )}
+
+          {/* 英文科提示 */}
+          {subject === 'en' && (
+            <div className="mb-4 px-3 py-2 rounded-lg text-xs" style={{ background: '#fff7ed', color: '#ea580c', border: '1px solid #fed7aa' }}>
+              🔤 English questions are generated in English. Explanations are in Traditional Chinese. Reading Comprehension includes a short passage (80-120 words).
             </div>
           )}
 

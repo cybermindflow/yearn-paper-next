@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { KNOWLEDGE_BASE, CHINESE_P3_KNOWLEDGE, SCIENCE_P3_KNOWLEDGE } from '@/lib/knowledgeBase'
+import { KNOWLEDGE_BASE, CHINESE_P3_KNOWLEDGE, SCIENCE_P3_KNOWLEDGE, ENGLISH_P3_KNOWLEDGE } from '@/lib/knowledgeBase'
 import { supabaseAdmin } from '@/lib/supabase'
 
 export async function GET(req: NextRequest) {
@@ -33,6 +33,11 @@ export async function GET(req: NextRequest) {
   // 科學科：使用靜態知識庫（21 個知識點，四大範疇）
   if (knowledgeName === '科學科') {
     return NextResponse.json({ knowledge: SCIENCE_P3_KNOWLEDGE })
+  }
+
+  // 英文科：使用靜態知識庫（32 個知識點，四大範疇）
+  if (knowledgeName === '英文科') {
+    return NextResponse.json({ knowledge: ENGLISH_P3_KNOWLEDGE })
   }
 
   // 數學科及其他：查詢 Supabase

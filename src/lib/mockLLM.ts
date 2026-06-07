@@ -269,6 +269,73 @@ ${knowledgeContent}
 ${previousQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n')}` : ''}`
 }
 
+function buildEnglishSystemPrompt(
+  grade: string,
+  questionTypes: string[],
+  difficulty: number,
+  totalQuestions: number,
+  knowledgeContent: string,
+  previousQuestions?: string[]
+): string {
+  const levelDesc = difficulty === 1
+    ? 'L1 Foundation: basic vocabulary recognition, simple sentence comprehension'
+    : difficulty === 2
+    ? 'L2 Standard: grammar application, reading comprehension, sentence construction'
+    : 'L3 Challenge: extended reading, creative writing, complex grammar'
+
+  return `You are a Hong Kong primary school English teacher. Generate English practice questions for Primary ${grade.replace('P', '')} students based on the knowledge points provided below.
+
+[STRICT REQUIREMENTS]
+1. Only use the knowledge points provided in the "Knowledge Base" section below.
+2. Questions must align with the Hong Kong Education Bureau English Language Curriculum Guide (Primary 1-6).
+3. Question types: ${questionTypes.join(', ')}
+4. Difficulty: ${levelDesc}
+5. Generate ${totalQuestions} questions
+6. Questions must be in ENGLISH. Explanations ("explanation" field) must be in Traditional Chinese (繁體中文).
+7. Vocabulary and topics must be appropriate for Hong Kong Primary ${grade.replace('P', '')} students
+
+[QUESTION TYPE GUIDE]
+- mc: Multiple Choice (4 options A/B/C/D, test vocabulary or grammar knowledge)
+- fill: Fill in the blanks (fill in the correct word or phrase)
+- tf: True or False (state is true or false, answer is "True" or "False")
+- match: Matching (match words with meanings, pictures, or categories)
+- reorder: Rearrange words (rearrange scrambled words to form a correct sentence)
+- comprehension: Reading Comprehension (provide a short passage 80-120 words, then ask 2-3 questions)
+
+[OUTPUT FORMAT]
+Output ONLY valid JSON in the following format (no other text):
+{
+  "questions": [
+    {
+      "type": "mc",
+      "question_text": "Question text in English",
+      "options": ["A. option1", "B. option2", "C. option3", "D. option4"],
+      "correct_answer": "A",
+      "explanation": "繁體中文解釋"
+    },
+    {
+      "type": "comprehension",
+      "question_text": "Read the following passage and answer the questions.\n\n[Passage]\nPassage text here...\n\n[Questions]\n1. Question one?\n2. Question two?",
+      "correct_answer": "1. Answer one\n2. Answer two",
+      "explanation": "繁體中文解釋"
+    }
+  ]
+}
+
+[Knowledge Base]
+${knowledgeContent}
+
+[NOTES]
+- Output ONLY JSON, no prefix or suffix text
+- Multiple choice options must start with "A. ", "B. ", "C. ", "D. "
+- Every question must have an "explanation" field in Traditional Chinese
+- Vocabulary must be appropriate for Primary ${grade.replace('P', '')} level${previousQuestions && previousQuestions.length > 0 ? `
+
+[AVOID REPETITION]
+The following questions have appeared in the student's recent 5 practice sessions. Do NOT generate identical questions:
+${previousQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n')}` : ''}`
+}
+
 function buildSystemPrompt(
   grade: string,
   subject: string,
@@ -289,6 +356,10 @@ function buildSystemPrompt(
   // Use Science-specific prompt for 科學科
   if (subject === '科學科') {
     return buildScienceSystemPrompt(grade, questionTypes, difficulty, totalQuestions, knowledgeContent, previousQuestions)
+  }
+  // Use English-specific prompt for 英文科
+  if (subject === '英文科') {
+    return buildEnglishSystemPrompt(grade, questionTypes, difficulty, totalQuestions, knowledgeContent, previousQuestions)
   }
 
   const typeLabels = questionTypes.map(t => QUESTION_TYPE_LABELS[t] || t).join('、')

@@ -36,6 +36,7 @@ const SUBJECT_CONFIG: Record<string, { title: string; color: string; pale: strin
   ch:  { title: '中文科', color: '#dc2626', pale: '#fff1f2' },
   hum: { title: '人文科（常識科知識庫）', color: '#0284c7', pale: '#f0f9ff' },
   sci: { title: '科學科', color: '#7c3aed', pale: '#faf5ff' },
+  en:  { title: '英文科', color: '#ea580c', pale: '#fff7ed' },
 }
 
 export default function Step2Page() {
@@ -268,6 +269,7 @@ export default function Step2Page() {
     sci: ['科學探究', '物理科學', '生物科學', '地球科學'],
     gs:  ['健康與生活', '環境與生活', '理財與經濟', '社會與公民', '國家與我', '世界與我'],
     hum: ['健康與生活', '環境與生活', '理財與經濟', '社會與公民', '國家與我', '世界與我'],
+    en:  ['Vocabulary', 'Grammar', 'Reading', 'Writing'],
   }
   const topicOrder = topicOrderMap[subject] || []
   const orderedTopics = [

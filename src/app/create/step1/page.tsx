@@ -55,9 +55,9 @@ const SUBJECTS: Record<string, {
       id: 'en',
       label: '英文科',
       emoji: '🔤',
-      available: false,
-      color: '#fafafa',
-      selectedColor: '#6b7280',
+      available: true,
+      color: '#fff7ed',
+      selectedColor: '#ea580c',
     },
     {
       id: 'hum',
@@ -154,7 +154,7 @@ function Step1Content() {
             <>
               <h2 className="text-xl font-bold mb-1" style={{ color: 'var(--brand-dark)' }}>選擇科目</h2>
               <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
-                小三常識科、數學科、中文科、人文科及科學科已開放，英文科即將推出
+                小三全科均已開放：常識科、數學科、中文科、英文科、人文科及科學科
               </p>
               {/* 人文科映射提示 */}
               {selectedSubject === 'hum' && (
