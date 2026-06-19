@@ -7,14 +7,14 @@ import StepIndicator from '@/components/StepIndicator'
 import { toast } from 'sonner'
 import { Loader2, CheckSquare, Square, Stethoscope } from 'lucide-react'
 
-// 通用題型（數學科、人文科）- 看圖題型開放
+// 通用題型（數學科、人文科）- 看圖題型暫停（圖庫完善後開放）
 const GENERAL_QUESTION_TYPES = [
   { id: 'mc', label: '選擇題', desc: '4 個選項，選一個正確答案', available: true },
   { id: 'tf', label: '判斷題', desc: '判斷陳述是否正確', available: true },
   { id: 'fill', label: '填充題', desc: '填入正確詞語', available: true },
   { id: 'match', label: '配對題', desc: '將項目與描述配對', available: true },
   { id: 'classify', label: '分類題', desc: '將項目分類', available: true },
-  { id: 'image_mc', label: '看圖選擇題 🖼️', desc: '根據圖形選擇正確答案', available: true },
+  { id: 'image_mc', label: '看圖選擇題 🖼️', desc: '（即將推出）圖庫完善後開放', available: false },
   { id: 'short', label: '問答題（短）', desc: '2-3 句短答', available: true },
   { id: 'essay', label: '問答題（長）', desc: '段落式作答', available: true },
 ]
@@ -31,14 +31,14 @@ const GS_QUESTION_TYPES = [
   { id: 'essay', label: '問答題（長）', desc: '段落式作答', available: true },
 ]
 
-// 中文科專屬題型
+// 中文科專屬題型 - 看圖題型暫停（圖庫完善後開放）
 const CHINESE_QUESTION_TYPES = [
   { id: 'mc', label: '選擇題', desc: '4 個選項，選一個正確答案', available: true },
   { id: 'fill', label: '填充題', desc: '填入正確詞語或標點', available: true },
   { id: 'dictation', label: '默寫題', desc: '默寫詞語或句子', available: true },
   { id: 'reorder', label: '排列句子', desc: '將句子排列成正確順序', available: true },
   { id: 'comprehension', label: '閱讀理解', desc: '根據短文回答問題', available: true },
-  { id: 'image_mc', label: '看圖選擇題 🖼️', desc: '根據圖形（筆順/句子結構）選擇正確答案', available: true },
+  { id: 'image_mc', label: '看圖選擇題 🖼️', desc: '（即將推出）圖庫完善後開放', available: false },
   { id: 'composition', label: '寫作題', desc: '短篇作文或看圖寫作', available: true },
   { id: 'short', label: '問答題（短）', desc: '2-3 句短答', available: true },
 ]
@@ -55,13 +55,13 @@ const SCIENCE_QUESTION_TYPES = [
   { id: 'essay', label: '問答題（長）', desc: '深入分析科學概念', available: true },
 ]
 
-// 英文科專屬題型
+// 英文科專屬題型 - 看圖題型暫停（圖庫完善後開放）
 const ENGLISH_QUESTION_TYPES = [
   { id: 'mc', label: 'Multiple Choice', desc: '4 options, choose the correct answer', available: true },
   { id: 'fill', label: 'Fill in the blanks', desc: 'Fill in the correct word or phrase', available: true },
   { id: 'tf', label: 'True or False', desc: 'Decide if the statement is true or false', available: true },
   { id: 'match', label: 'Matching', desc: 'Match words with their meanings or pictures', available: true },
-  { id: 'image_mc', label: 'Picture-based MC 🖼️', desc: 'Look at a diagram and choose the correct answer', available: true },
+  { id: 'image_mc', label: 'Picture-based MC 🖼️', desc: '(Coming soon) Available after image library is ready', available: false },
   { id: 'reorder', label: 'Rearrange words', desc: 'Rearrange words to form a correct sentence', available: true },
   { id: 'comprehension', label: 'Reading Comprehension', desc: 'Read a short passage and answer questions', available: true },
 ]

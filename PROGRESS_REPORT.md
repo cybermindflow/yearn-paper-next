@@ -1193,3 +1193,34 @@ if (selectedKnowledgeIds.some(isBaseCode)) {
 
 ### Commit
 `8735e4d` — fix: SVG image rendering - use plain img tag, add mock image_mc generator with image_key
+
+## 看圖題型全面暫停 & 防禦邏輯強化 (2026-06-20)
+
+### 修正一：Step 3 全科看圖題型暫停
+
+將所有科目的 `image_mc` 題型設為 `available: false`（灰色不可選）：
+
+| 科目 | 暫停題型 | 說明 |
+|------|----------|------|
+| 數學科 | image_mc | 圖庫完善後開放 |
+| 常識科 | image_mc | 已暫停（同前） |
+| 人文科 | image_mc | 圖庫完善後開放 |
+| 科學科 | image_mc | 已暫停（同前） |
+| 中文科 | image_mc | 圖庫完善後開放 |
+| 英文科 | image_mc | 圖庫完善後開放 |
+
+純文字題型（mc, tf, fill, match, classify, short, essay, dictation, reorder, comprehension, composition, label, experiment）不受影響，全部保持開放。
+
+### 修正二：mockLLM.ts 防禦邏輯確認（已完整）
+
+確認以下兩層防禦均已到位：
+
+1. **Mock 路徑**：`generateImageMCQuestion()` 呼叫 `findMathImageTemplate()`，若知識點無匹配模板（如「容量」），自動退回 `generateMCQuestion()`。
+2. **DeepSeek 路徑**：後處理中驗證 `image_key` 是否在 `VALID_IMAGE_KEYS` 集合中，若無效（如 `measuring_jug`）則降級為 `mc` 題型並記錄警告 log。
+
+### 修正三：submit route 成績計算確認（無需修改）
+
+`/api/questions/[paperId]/submit` 第 36 行和第 72 行均已包含 `image_mc` 在客觀題清單中，評分邏輯完整正確。
+
+### Commit
+`TBD` — fix: disable image_mc for all subjects in Step 3; confirm mock/DeepSeek fallback and scoring logic
