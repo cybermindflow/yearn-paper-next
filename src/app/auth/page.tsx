@@ -15,7 +15,7 @@ export default function AuthPage() {
   const [showPw, setShowPw] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  const fillTest = () => { setPhone('12345678'); setPassword('1234') }
+  const fillDemo = () => { setPhone('51111111'); setPassword('yearn2026') }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -100,7 +100,7 @@ export default function AuthPage() {
                 <div className="relative">
                   <Phone size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-muted)' }} />
                   <input type="tel" value={phone} onChange={e => setPhone(e.target.value)}
-                    placeholder="例如：12345678" className="input-field pl-9" required />
+                    placeholder="例如：51234567" className="input-field pl-9" required />
                 </div>
               </div>
 
@@ -126,10 +126,10 @@ export default function AuthPage() {
             </form>
 
             {mode === 'login' && (
-              <button onClick={fillTest}
+              <button onClick={fillDemo}
                 className="w-full mt-3 py-2 text-xs rounded-lg border transition-colors"
                 style={{ borderColor: 'var(--border)', color: 'var(--text-muted)', background: 'transparent' }}>
-                使用測試帳號（12345678 / 1234）
+                使用示範帳號（51111111 / yearn2026）
               </button>
             )}
           </div>

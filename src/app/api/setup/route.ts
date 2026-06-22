@@ -97,12 +97,12 @@ CREATE INDEX IF NOT EXISTS idx_knowledge_subject_year ON knowledge_chunks(subjec
 
 // Seed SQL for reference (executed separately)
 void `
--- Insert test parent account (password: 1234)
+-- Insert demo parent account (password: yearn2026)
 INSERT INTO parents (phone, nickname, password_hash)
 VALUES (
-  '12345678',
-  '測試家長',
-  '$2b$10$XXgFQ1GO87UP4/WZk6wn0.F6uM8Iy4jbthImiEctYO/6.MNIwDOi2'
+  '51111111',
+  '陳太（示範）',
+  '$2b$10$ktwD9rwZ.bdRtNbOltmLQ.08cUXkxaM5ZCPHu1awmoQHy0HSLc6EC'
 )
 ON CONFLICT (phone) DO NOTHING;
 
