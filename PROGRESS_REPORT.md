@@ -1224,3 +1224,73 @@ if (selectedKnowledgeIds.some(isBaseCode)) {
 
 ### Commit
 `TBD` — fix: disable image_mc for all subjects in Step 3; confirm mock/DeepSeek fallback and scoring logic
+
+## v1.0.0-p3 封版記錄 (2026-06-22)
+
+### 封版說明
+
+小三階段封版，準備對外測試。本版本涵蓋 Phase 0 至 Phase 7 的所有功能，支援六科（中、英、數、常、人文、科學）純文字題型。
+
+### 代碼清理
+
+1. **刪除 migration API 端點**：
+   - `/api/setup/gs-migration` — 已刪除
+   - `/api/setup/math-migration` — 已刪除
+   - `/api/setup/phase3-migration` — 已刪除
+   - 保留 `/api/setup/route.ts`（資料庫初始化檢查，仍需保留）
+
+2. **console.log 安全確認**：
+   - 所有 console.log/warn/error 均不輸出實際 API key、密碼或 hash 值
+   - mockLLM.ts 第 547 行只輸出「未設定」提示，不含 key 值
+   - 無需清理
+
+3. **測試檔案確認**：src/ 目錄下無 .test.ts 或 .spec.ts 檔案
+
+4. **品牌資訊確認**：
+   - manifest.json：name = 「殷學社教育中心」✅
+   - layout.tsx：title = 「殷學社教育中心 | AI 智能出卷平台」✅
+   - 版權聲明：© 2026 殷學社教育中心 Yearn Hopes Education Centre ✅
+
+### 示範帳號
+
+| 角色 | 手機號碼 | 密碼 |
+|------|----------|------|
+| 示範家長（陳太） | 51111111 | yearn2026 |
+| 示範孩子（小杰） | 51111112 | yearn2026 |
+
+bcrypt hash（cost=10）：`$2b$10$ktwD9rwZ.bdRtNbOltmLQ.08cUXkxaM5ZCPHu1awmoQHy0HSLc6EC`
+
+**Supabase SQL（需手動執行）**：
+```sql
+-- 刪除舊測試帳號
+DELETE FROM parents WHERE phone IN ('12345678', '11111111', '87654321');
+
+-- 建立示範帳號
+INSERT INTO parents (phone, password_hash, nickname)
+VALUES 
+  ('51111111', '$2b$10$ktwD9rwZ.bdRtNbOltmLQ.08cUXkxaM5ZCPHu1awmoQHy0HSLc6EC', '陳太（示範）'),
+  ('51111112', '$2b$10$ktwD9rwZ.bdRtNbOltmLQ.08cUXkxaM5ZCPHu1awmoQHy0HSLc6EC', '小杰（示範）')
+ON CONFLICT (phone) DO UPDATE SET 
+  password_hash = '$2b$10$ktwD9rwZ.bdRtNbOltmLQ.08cUXkxaM5ZCPHu1awmoQHy0HSLc6EC',
+  nickname = EXCLUDED.nickname;
+```
+
+### Vercel 部署環境變數確認清單
+
+| 變數 | 建議值 | 說明 |
+|------|--------|------|
+| USE_MOCK_LLM | false | 使用真實 DeepSeek API |
+| DEEPSEEK_API_KEY | （已設定） | DeepSeek API 金鑰 |
+| DEEPSEEK_MODEL | deepseek-chat | 模型名稱 |
+| ENABLE_USAGE_LIMITS | false | 對外測試期間不限制 |
+| NEXT_PUBLIC_APP_URL | https://yearn-paper-next.vercel.app | 部署 URL |
+
+### Git Tag
+
+`v1.0.0-p3-release` — 小三階段封版，對外測試版本
+
+### 偏差記錄
+
+1. **Supabase 帳號操作**：沙盒環境無法直接連接 Supabase，示範帳號 SQL 需由用戶在 Supabase SQL Editor 手動執行。
+2. **Vercel 環境變數**：需由用戶在 Vercel Dashboard 手動確認/設定，代理無法直接操作 Vercel 控制台。
+3. **Vercel 部署**：代碼已推送至 GitHub，Vercel 應自動觸發部署（如已啟用 Git 整合）。
