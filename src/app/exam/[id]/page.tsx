@@ -25,7 +25,6 @@ interface Paper {
   status: string
 }
 
-const OBJECTIVE_TYPES = ['mc', 'tf', 'fill', 'match', 'classify']
 const TYPE_LABELS: Record<string, string> = {
   mc: '選擇題', tf: '判斷題', fill: '填充題',
   match: '配對題', classify: '分類題', short: '問答題', essay: '問答題',
@@ -212,7 +211,7 @@ function ExamContent() {
 
   // Countdown timer
   const [timeRemaining, setTimeRemaining] = useState<number>(0)
-  const [timeExpired, setTimeExpired] = useState(false)
+  const [, setTimeExpired] = useState(false)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const startTimeRef = useRef<number>(Date.now())
   const autoSubmitRef = useRef(false)

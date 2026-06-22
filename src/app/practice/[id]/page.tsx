@@ -147,7 +147,7 @@ function PracticeContent() {
               {resultQuestions.map((rq) => {
                 const isSubjective = !OBJECTIVE_TYPES.includes(rq.question_type)
                 const correct = rq.is_correct === true
-                const wrong = rq.is_correct === false
+                // const wrong = rq.is_correct === false
                 const borderColor = isSubjective ? 'var(--border)' : correct ? '#22c55e' : '#ef4444'
                 const bgColor = isSubjective ? '#f9fafb' : correct ? '#f0fdf4' : '#fef2f2'
                 return (
