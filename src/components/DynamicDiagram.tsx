@@ -232,7 +232,7 @@ function renderPolygon(
   spec: import('@/types/diagram').PolygonSpec
 ) {
   const { vertices, sideLabels, angleLabels, fillColor } = spec
-  const pts = vertices.map((v, i) =>
+  const pts = vertices.map((v) =>
     b.create('point', v, { size: 0, name: '', fixed: true, visible: false }) as unknown
   )
 

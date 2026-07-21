@@ -172,7 +172,7 @@ function StudentContent() {
             <h2 className="text-sm font-semibold mb-1" style={{ color: '#64748b' }}>
               待完成任務
             </h2>
-            {tasks.map((task, idx) => {
+            {tasks.map((task) => {
               const subjectStyle = SUBJECT_COLORS[task.subject] || { bg: '#f1f5f9', text: '#475569', icon: '📝' }
               const modeStyle = MODE_LABELS[task.mode] || { label: task.mode, color: '#64748b' }
               const date = new Date(task.generated_at)
