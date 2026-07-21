@@ -1,10 +1,18 @@
 'use client'
 import { Suspense, useEffect, useState, useRef, useCallback } from 'react'
 import { QuestionImage } from '@/components/QuestionImage'
+import dynamic from 'next/dynamic'
+import type { DiagramSpec } from '@/types/diagram'
 import { useParams, useRouter } from 'next/navigation'
 import AppLayout from '@/components/AppLayout'
+
 import { toast } from 'sonner'
 import { Clock, Trophy, Loader2, AlertTriangle, ChevronRight, CheckCircle, X, Grid3X3 } from 'lucide-react'
+
+const DynamicDiagram = dynamic(() => import('@/components/DynamicDiagram'), { ssr: false })
+function DiagramRenderer({ spec }: { spec: DiagramSpec }) {
+  return <DynamicDiagram spec={spec} width={300} height={240} />
+}
 
 interface Question {
   id: string
@@ -15,6 +23,7 @@ interface Question {
   correct_answer: string
   explanation: string
   image_key?: string | null
+  diagram_spec?: DiagramSpec | null
 }
 
 interface Paper {
@@ -501,12 +510,16 @@ function ExamContent() {
             <p className="text-base font-medium mb-4 leading-relaxed" style={{ color: 'var(--text)' }}>
               {q.question_number}. {q.question_text}
             </p>
-            {q.image_key && (
+                        {q.image_key && (
               <div className="mb-4">
                 <QuestionImage imageKey={q.image_key} width={320} height={240} />
               </div>
             )}
-
+            {q.diagram_spec && (
+              <div className="mb-4">
+                <DiagramRenderer spec={q.diagram_spec} />
+              </div>
+            )}
             {/* MC options */}
             {q.question_type === 'mc' && q.options && (
               <div className="flex flex-col gap-2">

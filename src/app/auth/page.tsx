@@ -39,7 +39,7 @@ export default function AuthPage() {
       }
 
       toast.success(mode === 'login' ? '登入成功！' : '註冊成功！')
-      router.push('/dashboard')
+      router.push('/role-select')
     } catch {
       toast.error('網絡錯誤，請稍後再試')
     } finally {

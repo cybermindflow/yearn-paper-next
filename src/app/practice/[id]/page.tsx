@@ -2,15 +2,25 @@
 
 import { Suspense, useEffect, useState, useRef } from 'react'
 import { QuestionImage } from '@/components/QuestionImage'
+import dynamic from 'next/dynamic'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
+import type { DiagramSpec } from '@/types/diagram'
+
 import { toast } from 'sonner'
 import { ChevronLeft, ChevronRight, Clock, CheckCircle, AlertCircle, Loader2, XCircle } from 'lucide-react'
+
+const DynamicDiagram = dynamic(() => import('@/components/DynamicDiagram'), { ssr: false })
+
+function DiagramRenderer({ spec }: { spec: DiagramSpec }) {
+  return <DynamicDiagram spec={spec} width={300} height={240} />
+}
 
 interface Question {
   id: string; question_number: number; question_text: string
   question_type: string; options: Record<string, string> | null
   correct_answer: string; explanation: string
   image_key?: string | null
+  diagram_spec?: DiagramSpec | null
 }
 
 interface QuestionResult {
@@ -319,6 +329,11 @@ function PracticeContent() {
           {q.image_key && (
             <div className="mt-3">
               <QuestionImage imageKey={q.image_key} width={320} height={240} />
+            </div>
+          )}
+          {q.diagram_spec && (
+            <div className="mt-3">
+              <DiagramRenderer spec={q.diagram_spec} />
             </div>
           )}
         </div>

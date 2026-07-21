@@ -1,4 +1,5 @@
 import { KnowledgeChunk } from './knowledgeBase'
+import type { DiagramSpec } from '@/types/diagram'
 
 export interface GeneratedQuestion {
   question_number: number
@@ -8,6 +9,8 @@ export interface GeneratedQuestion {
   correct_answer: string
   explanation: string
   image_key?: string | null
+  /** JSXGraph diagram spec JSON (for diagram_mc questions) */
+  diagram_spec?: DiagramSpec | null
 }
 
 export interface GenerateParams {
@@ -33,17 +36,19 @@ const QUESTION_TYPE_LABELS: Record<string, string> = {
   label: '標示題',
   experiment: '實驗設計題',
   image_mc: '看圖選擇題',
+  diagram_mc: '動態圖形選擇題',
 }
 
 // ── DeepSeek API types ────────────────────────────────────────────────────────
 
 interface DeepSeekQuestion {
-  type: 'mc' | 'tf' | 'short' | 'image_mc'
+  type: 'mc' | 'tf' | 'short' | 'image_mc' | 'diagram_mc' | 'fill' | 'essay' | 'label' | 'experiment' | 'dictation' | 'reorder' | 'comprehension' | 'composition'
   question_text: string
   options?: string[]
   correct_answer: string
   explanation: string
   image_key?: string
+  diagram_spec?: DiagramSpec
 }
 
 interface DeepSeekResponse {
@@ -83,7 +88,16 @@ function buildMathSystemPrompt(
 - 填充題（fill）：答案必須是具體數字或單位，不得是模糊表述
 - 問答題（short）：必須包含完整的計算步驟
 - 判斷題（tf）：陳述必須清晰，答案為「對」或「錯」
-- 看圖選擇題（image_mc）：題目文字描述圖形，並在 image_key 欄位填入對應圖形代碼（如 right_triangle、clock、number_line、cuboid、angle_types 等），4 個選項
+- 動態圖形選擇題（diagram_mc）：題目文字描述圖形，並在 diagram_spec 欄位填入 JSXGraph JSON 描述。支援的圖形類型：
+  - clock：{"type":"clock","hour":3,"minute":0} → 題目必須與 hour/minute 完全一致
+  - number_line：{"type":"number_line","min":0,"max":10,"marks":[{"value":3},{"value":7}],"jumps":[{"from":3,"to":7,"label":"+4"}]}
+  - polygon：{"type":"polygon","vertices":[[0,4],[-3,-2],[3,-2]],"sideLabels":["5cm","5cm","6cm"]}
+  - circle：{"type":"circle","radius":3,"radiusLabel":"4cm"}
+  - angle：{"type":"angle","degrees":90,"label":"直角"}
+  - fraction_bar：{"type":"fraction_bar","total":8,"shaded":3,"label":"3/8"}
+  - bar_chart：{"type":"bar_chart","bars":[{"label":"蘋果","value":5},{"label":"橙","value":3}]}
+  - compass：{"type":"compass","highlight":"N"}
+  重要：確保 diagram_spec 的數值與題目文字完全一致（如 clock 的 hour=3 則題目必說「三時正」）
 - 所有數字必須經過驗算，確保算術正確
 
 【輸出格式】
@@ -108,14 +122,14 @@ function buildMathSystemPrompt(
       "explanation": "解釋"
     },
     {
-      "type": "image_mc",
+      "type": "diagram_mc",
       "level": "L1",
       "knowledge_point_id": "M3_04_L1",
-      "question_text": "觀察右圖，這個圖形有多少條邊？",
-      "image_key": "right_triangle",
+      "question_text": "觀察右圖的三角形，這個圖形有多少條邊？",
+      "diagram_spec": {"type":"polygon","vertices":[[0,4],[-3,-2],[3,-2]],"sideLabels":["5cm","5cm","6cm"]},
       "options": ["A. 2", "B. 3", "C. 4", "D. 5"],
       "correct_answer": "B",
-      "explanation": "直角三角形有 3 條邊"
+      "explanation": "三角形有 3 條邊"
     }
   ]
 }
@@ -646,7 +660,7 @@ async function generateWithDeepSeek(params: GenerateParams): Promise<GeneratedQu
       .map((q, idx) => {
         let options: Record<string, string> | null = null
 
-        if ((q.type === 'mc' || q.type === 'image_mc') && Array.isArray(q.options)) {
+        if ((q.type === 'mc' || q.type === 'image_mc' || q.type === 'diagram_mc') && Array.isArray(q.options)) {
           options = {}
           for (const opt of q.options) {
             const key = opt.charAt(0) // 'A', 'B', 'C', 'D'
@@ -659,13 +673,24 @@ async function generateWithDeepSeek(params: GenerateParams): Promise<GeneratedQu
 
         // Validate image_key for image_mc: if key is missing or not in VALID_IMAGE_KEYS,
         // downgrade to plain mc to avoid broken placeholder boxes
-        let finalType = q.type
+        let finalType = q.type as string
         let finalImageKey: string | null = q.image_key || null
+        let finalDiagramSpec: DiagramSpec | null = null
+
         if (q.type === 'image_mc') {
           if (!finalImageKey || !VALID_IMAGE_KEYS.has(finalImageKey)) {
-            console.warn(`[DeepSeek] image_mc 第 ${idx + 1} 題 image_key 無效 ("${finalImageKey}")，降級為 mc`)
+            console.warn(`[DeepSeek] image_mc 第 ${idx + 1} 題 image_key 無效 ("${finalImageKey}"),降級為 mc`)
             finalType = 'mc'
             finalImageKey = null
+          }
+        } else if (q.type === 'diagram_mc') {
+          // Validate diagram_spec: must be a valid DiagramSpec object with known type
+          const validDiagramTypes = new Set(['clock','number_line','polygon','circle','angle','compass','bar_chart','fraction_bar','grid','custom'])
+          if (q.diagram_spec && validDiagramTypes.has(q.diagram_spec.type)) {
+            finalDiagramSpec = q.diagram_spec
+          } else {
+            console.warn(`[DeepSeek] diagram_mc 第 ${idx + 1} 題 diagram_spec 無效，降級為 mc`)
+            finalType = 'mc'
           }
         }
 
@@ -677,6 +702,7 @@ async function generateWithDeepSeek(params: GenerateParams): Promise<GeneratedQu
           correct_answer: q.correct_answer,
           explanation: q.explanation,
           image_key: finalImageKey,
+          diagram_spec: finalDiagramSpec,
         }
       })
 
@@ -941,6 +967,140 @@ function generateImageMCQuestion(chunk: KnowledgeChunk, num: number): GeneratedQ
   return generateMCQuestion(chunk, num)
 }
 
+// ── Diagram-MC: JSXGraph-based dynamic diagram questions ──────────────────────
+// Maps math knowledge-point keywords to JSXGraph DiagramSpec templates
+
+interface DiagramMCTemplate {
+  diagram_spec: DiagramSpec
+  question_text: string
+  options: Record<string, string>
+  correct_answer: string
+  explanation: string
+}
+
+const MATH_DIAGRAM_TEMPLATES: Array<{ keywords: string[]; template: DiagramMCTemplate }> = [
+  {
+    keywords: ['時間', '時鐘'],
+    template: {
+      diagram_spec: { type: 'clock', hour: 3, minute: 0 },
+      question_text: '請觀察右圖的時鐘，圖中時鐘顯示的時間是幾時？',
+      options: { A: '三時正（3:00）', B: '十二時正（12:00）', C: '六時正（6:00）', D: '九時正（9:00）' },
+      correct_answer: 'A',
+      explanation: '時鐘的時针指向 3，分针指向 12，因此顯示的時間是三時正（3:00）。',
+    },
+  },
+  {
+    keywords: ['加法', '數線'],
+    template: {
+      diagram_spec: { type: 'number_line', min: 0, max: 10, marks: [{ value: 3, label: '3' }, { value: 7, label: '7' }], jumps: [{ from: 3, to: 7, label: '+4' }] },
+      question_text: '請觀察右圖的數線，圖中笭頭從 3 向右跳 4 格，到達哪個數字？',
+      options: { A: '7', B: '5', C: '6', D: '8' },
+      correct_answer: 'A',
+      explanation: '數線上從 3 向右跳 4 格：3 ＋ 4 ＝ 7，因此到達 7。',
+    },
+  },
+  {
+    keywords: ['三角形', '直角', '平面圖形'],
+    template: {
+      diagram_spec: { type: 'polygon', vertices: [[0, 4], [-3, -2], [3, -2]], sideLabels: ['5cm', '5cm', '6cm'] },
+      question_text: '請觀察右圖的三角形，這個圖形有多少條邊？',
+      options: { A: '2條', B: '3條', C: '4條', D: '5條' },
+      correct_answer: 'B',
+      explanation: '三角形有 3 條邊和 3 個角。',
+    },
+  },
+  {
+    keywords: ['正方形', '周界'],
+    template: {
+      diagram_spec: { type: 'polygon', vertices: [[-3, 3], [3, 3], [3, -3], [-3, -3]], sideLabels: ['6cm', '6cm', '6cm', '6cm'] },
+      question_text: '請觀察右圖的圖形，以下哪一項正確描述了這個圖形的特徵？',
+      options: { A: '四邊等長，四個角都是直角', B: '對邊等長，但四邊不全相等', C: '只有兩條邊相等', D: '沒有直角' },
+      correct_answer: 'A',
+      explanation: '圖中圖形是正方形，四邊等長，四個角都是直角（90°）。',
+    },
+  },
+  {
+    keywords: ['長方形', '長方體'],
+    template: {
+      diagram_spec: { type: 'polygon', vertices: [[-4, 2], [4, 2], [4, -2], [-4, -2]], sideLabels: ['8cm', '4cm', '8cm', '4cm'] },
+      question_text: '請觀察右圖的圖形，以下哪一項正確描述了這個長方形的特徵？',
+      options: { A: '對邊等長，四個角都是直角', B: '四邊全部相等', C: '只有一組對邊平行', D: '沒有直角' },
+      correct_answer: 'A',
+      explanation: '長方形的對邊等長，四個角都是直角（90°）。',
+    },
+  },
+  {
+    keywords: ['圓形', '圓', '半徑'],
+    template: {
+      diagram_spec: { type: 'circle', radius: 3, radiusLabel: '4cm' },
+      question_text: '請觀察右圖的圓形，圖中標示的線段代表什麼？',
+      options: { A: '半徑（圓心到圓周的距離）', B: '直徑（圓周到圓周的最長距離）', C: '弦（連接兩點的線段）', D: '切線（與圓周相切的直線）' },
+      correct_answer: 'A',
+      explanation: '圖中從圓心到圓周的線段代表半徑，半徑是圓心到圓周上任何一點的距離。',
+    },
+  },
+  {
+    keywords: ['角', '角度'],
+    template: {
+      diagram_spec: { type: 'angle', degrees: 90, label: '直角' },
+      question_text: '請觀察右圖的角度，這個角是什麼角？',
+      options: { A: '直角（90°）', B: '銃角（小於 90°）', C: '鲈角（大於 90°）', D: '平角（180°）' },
+      correct_answer: 'A',
+      explanation: '圖中的角為 90°，是直角。銃角小於 90°，鲈角大於 90°。',
+    },
+  },
+  {
+    keywords: ['方向', '位置'],
+    template: {
+      diagram_spec: { type: 'compass', highlight: 'N' },
+      question_text: '請觀察右圖的指南針，圖中「N」代表哪個方向？',
+      options: { A: '北方', B: '南方', C: '東方', D: '西方' },
+      correct_answer: 'A',
+      explanation: '指南針上「N」代表 North（北方），「S」代表南方，「E」代表東方，「W」代表西方。',
+    },
+  },
+  {
+    keywords: ['分數'],
+    template: {
+      diagram_spec: { type: 'fraction_bar', total: 8, shaded: 3, label: '3/8' },
+      question_text: '請觀察右圖的分數條，陰影部分代表哪個分數？',
+      options: { A: '3/8', B: '5/8', C: '3/5', D: '1/3' },
+      correct_answer: 'A',
+      explanation: '分數條共分為 8 等份，陰影了 3 份，因此陰影部分代表 3/8。',
+    },
+  },
+]
+
+function findMathDiagramTemplate(chunk: KnowledgeChunk): DiagramMCTemplate | null {
+  const kp = chunk.knowledge_point
+  for (const entry of MATH_DIAGRAM_TEMPLATES) {
+    if (entry.keywords.some(kw => kp.includes(kw))) {
+      return entry.template
+    }
+  }
+  return null
+}
+
+function generateDiagramMCQuestion(chunk: KnowledgeChunk, num: number): GeneratedQuestion {
+  if (chunk.subject === '數學科') {
+    const template = findMathDiagramTemplate(chunk)
+    if (template) {
+      return {
+        question_number: num,
+        question_text: template.question_text,
+        question_type: 'diagram_mc',
+        options: template.options,
+        correct_answer: template.correct_answer,
+        explanation: template.explanation,
+        diagram_spec: template.diagram_spec,
+      }
+    }
+  }
+  // No matching diagram template → fall back to plain MC
+  console.log(`[MockLLM] No diagram template for "${chunk.knowledge_point}" (${chunk.subject}), falling back to MC`)
+  return generateMCQuestion(chunk, num)
+}
+
 function generateOneQuestion(
   chunk: KnowledgeChunk,
   qType: string,
@@ -955,6 +1115,7 @@ function generateOneQuestion(
     case 'essay': return generateShortQuestion(chunk, num)
     case 'classify': return generateClassifyQuestion(chunk, num)
     case 'image_mc': return generateImageMCQuestion(chunk, num)
+    case 'diagram_mc': return generateDiagramMCQuestion(chunk, num)
     default: return generateMCQuestion(chunk, num)
   }
 }

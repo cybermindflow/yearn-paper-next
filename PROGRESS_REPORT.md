@@ -1294,3 +1294,92 @@ ON CONFLICT (phone) DO UPDATE SET
 1. **Supabase 帳號操作**：沙盒環境無法直接連接 Supabase，示範帳號 SQL 需由用戶在 Supabase SQL Editor 手動執行。
 2. **Vercel 環境變數**：需由用戶在 Vercel Dashboard 手動確認/設定，代理無法直接操作 Vercel 控制台。
 3. **Vercel 部署**：代碼已推送至 GitHub，Vercel 應自動觸發部署（如已啟用 Git 整合）。
+
+---
+
+## Phase 8：技術升級（JSXGraph 圖形引擎、puppeteer PDF、學生 PWA）
+
+**日期**：2026-07-21
+
+### 升級目標
+
+| 目標 | 說明 | 狀態 |
+|------|------|------|
+| 1. 替換 PDFKit | 使用 puppeteer-core + @sparticuz/chromium 生成 PDF | ✅ 完成 |
+| 2. 替換靜態 SVG | 使用 JSXGraph 動態圖形引擎 | ✅ 完成 |
+| 3. 統一線上/PDF 渲染 | 線上作答與 PDF 使用相同 HTML 模板 | ✅ 完成 |
+| 4. 學生端 PWA | 建立學生專用介面（/student/*） | ✅ 完成 |
+
+### 新增/修改檔案
+
+#### 新增依賴
+- `puppeteer-core` — 無頭瀏覽器 PDF 生成
+- `@sparticuz/chromium` — Vercel Serverless 用輕量 Chromium
+- `jsxgraph` — 數學動態圖形引擎
+- `pdfkit` — 已移除
+
+#### 新增檔案
+| 檔案 | 說明 |
+|------|------|
+| `src/types/diagram.ts` | DiagramSpec 類型定義（JSXGraph JSON 描述） |
+| `src/components/DynamicDiagram.tsx` | JSXGraph React 組件（dynamic import, ssr:false） |
+| `src/lib/pdfTemplate.ts` | HTML 模板生成器（支援 diagram_mc via JSXGraph SVG） |
+| `src/lib/pdfGenerator.ts` | puppeteer-core PDF 生成工具函數 |
+| `src/app/role-select/page.tsx` | 角色選擇頁（登入後跳轉，選擇家長/學生模式） |
+| `src/app/student/page.tsx` | 學生端 PWA 主頁（顯示待完成任務） |
+| `src/app/api/student/tasks/route.ts` | 學生任務 API（GET /api/student/tasks?childId=xxx） |
+
+#### 修改檔案
+| 檔案 | 修改內容 |
+|------|----------|
+| `src/lib/mockLLM.ts` | 新增 diagram_mc 題型、MATH_DIAGRAM_TEMPLATES、JSXGraph JSON 描述 |
+| `src/app/api/papers/[id]/pdf/route.ts` | 改用 puppeteer-core 替代 PDFKit |
+| `src/app/api/exam/[id]/pdf/route.ts` | 改用 puppeteer-core 替代 PDFKit |
+| `src/app/practice/[id]/page.tsx` | 新增 DiagramRenderer 支援 diagram_spec 渲染 |
+| `src/app/exam/[id]/page.tsx` | 新增 DiagramRenderer 支援 diagram_spec 渲染 |
+| `src/app/auth/page.tsx` | 登入後跳轉至 /role-select 而非 /dashboard |
+
+### 新題型：diagram_mc
+
+`diagram_mc` 取代 `image_mc`，AI 生成 JSXGraph JSON 描述，前端動態渲染數學圖形。
+
+**DiagramSpec 結構**：
+```json
+{
+  "type": "triangle | clock | number_line | bar_chart | ...",
+  "elements": [
+    { "type": "point", "coords": [0, 0], "label": "A" },
+    { "type": "line", "points": ["A", "B"] }
+  ]
+}
+```
+
+### 學生端 PWA 架構
+
+- **入口**：登入 → `/role-select` → 選擇學生模式 → `/student?childId=xxx`
+- **功能**：顯示待完成任務列表，點擊「開始作答」進入 `/practice/[id]` 或 `/exam/[id]`
+- **限制**：無法存取儀錶板、成績分析、出卷功能
+- **路由保護**：未登入自動跳轉至 `/auth`
+
+### TypeScript 檢查結果
+
+執行 `npx tsc --noEmit` — **無錯誤** ✅
+
+### 本地測試步驟
+
+```bash
+cd /path/to/yearn-paper-next-full
+npm install
+npm run dev
+# 瀏覽器開啟 http://localhost:3000
+# 使用示範帳號登入：51111111 / yearn2026
+# 登入後跳轉至 /role-select
+# 選擇「家長模式」→ /dashboard
+# 選擇「學生模式」→ /student?childId=xxx（需先在家長模式新增孩子）
+```
+
+### 偏差記錄
+
+1. **exam pdf route**：原本使用 PDFKit，Phase 8 改為使用 puppeteer-core + pdfTemplate.ts，保持與 papers pdf route 一致。
+2. **waitUntil 參數**：puppeteer `setContent` 的 `waitUntil: 'networkidle0'` 在某些 TypeScript 版本不被接受，改為 `['load', 'domcontentloaded']`。
+3. **@sparticuz/chromium defaultViewport**：類型定義中無此屬性，改為硬編碼 `{ width: 1280, height: 720 }`。
