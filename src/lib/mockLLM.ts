@@ -483,7 +483,7 @@ function validateDeepSeekResponse(
     errors.push(`題目數量不足：期望 ${expectedCount}，實際 ${questions.length}`)
   }
 
-  const validTypes = new Set(['mc', 'tf', 'short', 'fill', 'essay', 'image_mc', 'label', 'experiment', 'dictation', 'reorder', 'comprehension', 'composition'])
+  const validTypes = new Set(['mc', 'tf', 'short', 'fill', 'essay', 'image_mc', 'diagram_mc', 'label', 'experiment', 'dictation', 'reorder', 'comprehension', 'composition'])
   const allowedTypes = new Set(questionTypes.flatMap(t => (t === 'essay' ? ['short', 'essay'] : [t])))
 
   for (let i = 0; i < questions.length; i++) {
@@ -500,9 +500,9 @@ function validateDeepSeekResponse(
     if (!q.explanation || typeof q.explanation !== 'string') {
       errors.push(`第 ${i + 1} 題缺少 explanation`)
     }
-    if (q.type === 'mc') {
+    if (q.type === 'mc' || q.type === 'diagram_mc') {
       if (!Array.isArray(q.options) || q.options.length !== 4) {
-        errors.push(`第 ${i + 1} 題（選擇題）選項數量不正確：${q.options?.length ?? 0}`)
+        errors.push(`第 ${i + 1} 題（${q.type === 'diagram_mc' ? '動態圖形選擇題' : '選擇題'}）選項數量不正確：${q.options?.length ?? 0}`)
       }
     }
     if (q.type && !allowedTypes.has(q.type) && validTypes.has(q.type)) {
