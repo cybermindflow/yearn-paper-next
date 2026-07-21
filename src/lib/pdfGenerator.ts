@@ -113,7 +113,7 @@ export async function generatePdfBuffer(
     const pdfBuffer = await page.pdf({
       format: 'A4',
       printBackground: true,
-      margin: { top: '15mm', right: '15mm', bottom: '18mm', left: '15mm' },
+      margin: { top: '15mm', right: '20mm', bottom: '15mm', left: '20mm' },
       displayHeaderFooter: false,
     })
 

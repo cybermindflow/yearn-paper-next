@@ -1,8 +1,8 @@
 {
   "name": "殷學社教育中心",
   "short_name": "殷學社",
-  "description": "殷學社教育中心 AI 智能出卷平台",
-  "start_url": "/",
+  "description": "殷學社教育中心 AI 智能出卷平台 — 家長出卷管理、學生線上作答",
+  "start_url": "/role-select",
   "display": "standalone",
   "background_color": "#f8faf8",
   "theme_color": "#2d6a4f",
@@ -22,5 +22,7 @@
     }
   ],
   "categories": ["education"],
-  "lang": "zh-HK"
+  "lang": "zh-HK",
+  "scope": "/",
+  "prefer_related_applications": false
 }

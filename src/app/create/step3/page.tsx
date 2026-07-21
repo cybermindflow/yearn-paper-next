@@ -15,6 +15,7 @@ const GENERAL_QUESTION_TYPES = [
   { id: 'match', label: '配對題', desc: '將項目與描述配對', available: true },
   { id: 'classify', label: '分類題', desc: '將項目分類', available: true },
   { id: 'image_mc', label: '看圖選擇題 🖼️', desc: '（即將推出）圖庫完善後開放', available: false },
+  { id: 'diagram_mc', label: '動態圖形題 📊', desc: '時鐘、幾何圖形、數線等動態圖形題（僅數學科）', available: true },
   { id: 'short', label: '問答題（短）', desc: '2-3 句短答', available: true },
   { id: 'essay', label: '問答題（長）', desc: '段落式作答', available: true },
 ]

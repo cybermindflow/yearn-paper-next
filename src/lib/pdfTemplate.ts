@@ -78,12 +78,16 @@ function renderQuestion(q: QuestionRow, type: 'question' | 'answer', idx: number
   }
 
   let bodyHtml = ''
+  const isCompact = ['mc', 'tf', 'diagram_mc'].includes(q.question_type)
   if (type === 'question') {
     // Options for mc / tf / diagram_mc
     if (q.options && typeof q.options === 'object') {
       const optEntries = Object.entries(q.options).filter(([k]) => k.length === 1)
       if (optEntries.length > 0) {
-        bodyHtml += '<div class="options">'
+        // Use inline layout if all options are short (<=12 chars)
+        const allShort = optEntries.every(([, v]) => v.length <= 12)
+        const inlineClass = allShort ? ' inline' : ''
+        bodyHtml += `<div class="options${inlineClass}">`
         for (const [key, val] of optEntries) {
           bodyHtml += `<div class="option"><span class="opt-key">${escapeHtml(key)}.</span> ${escapeHtml(val)}</div>`
         }
@@ -105,8 +109,9 @@ function renderQuestion(q: QuestionRow, type: 'question' | 'answer', idx: number
     }
   }
 
+  const compactClass = isCompact ? ' compact' : ''
   return `
-    <div class="question">
+    <div class="question${compactClass}">
       <div class="question-header">
         <span class="type-badge">[${escapeHtml(label)}]</span>
         <span class="question-text">${q.question_number}. ${escapeHtml(q.question_text)}</span>
@@ -423,7 +428,7 @@ export function buildPdfHtml(
     }
     @page {
       size: A4;
-      margin: 15mm 15mm 18mm 15mm;
+      margin: 15mm 20mm 15mm 20mm;
     }
     @media print {
       body { padding: 0; }
@@ -434,8 +439,8 @@ export function buildPdfHtml(
     .page-header {
       text-align: center;
       border-bottom: 2px solid #2d6a4f;
-      padding-bottom: 8px;
-      margin-bottom: 10px;
+      padding-bottom: 6px;
+      margin-bottom: 8px;
     }
     .school-name {
       font-size: 18pt;
@@ -472,10 +477,10 @@ export function buildPdfHtml(
       background: #fffbeb;
       border: 1px solid #f59e0b;
       border-radius: 4px;
-      padding: 5px 10px;
-      font-size: 8pt;
+      padding: 4px 8px;
+      font-size: 7.5pt;
       color: #92400e;
-      margin: 8px 0 10px;
+      margin: 6px 0 8px;
     }
 
     /* Questions */
@@ -485,10 +490,14 @@ export function buildPdfHtml(
     .question {
       break-inside: avoid;
       page-break-inside: avoid;
-      margin-bottom: 12px;
-      padding: 8px 10px;
+      margin-bottom: 6px;
+      padding: 5px 8px;
       border-left: 3px solid #d8f3dc;
       background: #fafffe;
+    }
+    .question.compact {
+      margin-bottom: 4px;
+      padding: 4px 8px;
     }
     .question-header {
       display: flex;
@@ -504,8 +513,8 @@ export function buildPdfHtml(
       flex-shrink: 0;
     }
     .question-text {
-      font-size: 11pt;
-      line-height: 1.5;
+      font-size: 12pt;
+      line-height: 1.4;
     }
 
     /* Diagram */
@@ -530,12 +539,17 @@ export function buildPdfHtml(
 
     /* Options */
     .options {
-      margin: 6px 0 0 20px;
+      margin: 4px 0 0 18px;
+    }
+    .options.inline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 16px;
     }
     .option {
-      font-size: 10.5pt;
-      margin: 3px 0;
-      line-height: 1.4;
+      font-size: 11pt;
+      margin: 2px 0;
+      line-height: 1.3;
     }
     .opt-key {
       font-weight: 700;
@@ -547,7 +561,7 @@ export function buildPdfHtml(
     .answer-line {
       font-size: 10pt;
       color: #aaa;
-      margin: 4px 0 0 20px;
+      margin: 3px 0 0 18px;
       letter-spacing: 1px;
     }
 

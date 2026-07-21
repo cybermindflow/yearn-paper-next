@@ -190,6 +190,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     correct_answer: q.correct_answer,
     explanation: q.explanation,
     image_key: q.image_key || null,
+    diagram_spec: q.diagram_spec || null,
   }))
 
   // Delete old questions if regenerating
