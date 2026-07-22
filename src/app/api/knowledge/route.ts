@@ -5,6 +5,7 @@ import { supabaseAdmin } from '@/lib/supabase'
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const subject = searchParams.get('subject') || 'gs'
+  const grade = searchParams.get('grade') || 'P3'
 
   // Map subject ID to subject name and knowledge subject (for DB query)
   const subjectMap: Record<string, { name: string; knowledgeName: string }> = {
@@ -18,6 +19,30 @@ export async function GET(req: NextRequest) {
 
   const mapped = subjectMap[subject] || { name: subject, knowledgeName: subject }
   const knowledgeName = mapped.knowledgeName
+
+  // P4 及以上年級：所有科目從 Supabase 動態查詢
+  if (grade !== 'P3') {
+    try {
+      const { data, error } = await supabaseAdmin
+        .from('knowledge_chunks')
+        .select('id, subject, year, topic, unit, knowledge_point, learning_objective, level, applicable_question_types, source')
+        .eq('subject', knowledgeName)
+        .eq('year', grade)
+        .order('unit')
+
+      if (error) {
+        console.error('[knowledge API] Supabase error:', error.message)
+        return NextResponse.json({ knowledge: [], error: error.message })
+      }
+
+      return NextResponse.json({ knowledge: data || [] })
+    } catch (e) {
+      console.error('[knowledge API] Exception:', e)
+      return NextResponse.json({ knowledge: [], error: String(e) })
+    }
+  }
+
+  // === P3 年級邏輯（保持向後兼容） ===
 
   // 常識科 / 人文科：使用靜態知識庫（46 個知識點，六大範疇）
   if (knowledgeName === '常識科') {
@@ -46,6 +71,7 @@ export async function GET(req: NextRequest) {
       .from('knowledge_chunks')
       .select('id, subject, year, topic, unit, knowledge_point, learning_objective, level, applicable_question_types, source')
       .eq('subject', knowledgeName)
+      .eq('year', 'P3')
       .order('unit')
 
     if (error) {

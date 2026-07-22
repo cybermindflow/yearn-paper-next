@@ -10,7 +10,7 @@ const GRADES = [
   { id: 'P1', label: '小一', available: false },
   { id: 'P2', label: '小二', available: false },
   { id: 'P3', label: '小三', available: true },
-  { id: 'P4', label: '小四', available: false },
+  { id: 'P4', label: '小四', available: true },
   { id: 'P5', label: '小五', available: false },
   { id: 'P6', label: '小六', available: false },
 ]
@@ -78,6 +78,62 @@ const SUBJECTS: Record<string, {
     },
   ],
 }
+
+// P4 科目定義
+const SUBJECTS_P4 = [
+  {
+    id: 'ma',
+    label: '數學科',
+    emoji: '🔢',
+    available: true,
+    color: '#eff6ff',
+    selectedColor: '#2563eb',
+  },
+  {
+    id: 'gs',
+    label: '常識科',
+    emoji: '🌍',
+    available: true,
+    color: '#f0fdf4',
+    selectedColor: '#16a34a',
+  },
+  {
+    id: 'ch',
+    label: '中文科',
+    emoji: '📝',
+    available: false,
+    color: '#fff1f2',
+    selectedColor: '#dc2626',
+  },
+  {
+    id: 'en',
+    label: '英文科',
+    emoji: '🔤',
+    available: false,
+    color: '#fff7ed',
+    selectedColor: '#ea580c',
+  },
+  {
+    id: 'hum',
+    label: '人文科',
+    emoji: '📖',
+    available: false,
+    color: '#f0f9ff',
+    selectedColor: '#0284c7',
+    knowledgeSubject: '常識科',
+  },
+  {
+    id: 'sci',
+    label: '科學科',
+    emoji: '🧪',
+    available: false,
+    color: '#faf5ff',
+    selectedColor: '#7c3aed',
+  },
+]
+
+// Add P4 to SUBJECTS
+SUBJECTS['P4'] = SUBJECTS_P4 as typeof SUBJECTS['P3']
 
 const STEPS = [
   { label: '年級科目', sublabel: '選擇' },

@@ -69,9 +69,10 @@ export default function Step2Page() {
   useEffect(() => {
     const step1 = JSON.parse(sessionStorage.getItem('yp_step1') || '{}')
     const subjectId = step1.subject || 'gs'
+    const gradeId = step1.grade || 'P3'
     setSubject(subjectId)
 
-    fetch(`/api/knowledge?subject=${subjectId}`)
+    fetch(`/api/knowledge?subject=${subjectId}&grade=${gradeId}`)
       .then(r => r.json())
       .then(d => {
         const chunks = d.knowledge || []
@@ -162,7 +163,7 @@ export default function Step2Page() {
       if (!categoryMap[cat][sub]) categoryMap[cat][sub] = []
       categoryMap[cat][sub].push(k)
     }
-    const categoryOrder = ['數（Number）', '度量（Measures）', '圖形與空間（Shape and Space）']
+    const categoryOrder = ['數（Number）', '度量（Measures）', '圖形與空間（Shape and Space）', '圖形與空間（Shape & Space）']
     const orderedCategories = [
       ...categoryOrder.filter(c => categoryMap[c]),
       ...Object.keys(categoryMap).filter(c => !categoryOrder.includes(c)),
@@ -294,7 +295,7 @@ export default function Step2Page() {
   const topicOrderMap: Record<string, string[]> = {
     ch:  ['聽', '說', '讀', '寫'],
     sci: ['科學探究', '物理科學', '生物科學', '地球科學'],
-    gs:  ['健康與生活', '環境與生活', '理財與經濟', '社會與公民', '國家與我', '世界與我'],
+    gs:  ['健康與生活', '環境與生活', '人與環境', '科學與科技', '社會與公民', '中國與香港', '世界與我', '理財與經濟', '國家與我'],
     hum: ['健康與生活', '環境與生活', '理財與經濟', '社會與公民', '國家與我', '世界與我'],
     en:  ['Vocabulary', 'Grammar', 'Reading', 'Writing'],
   }
